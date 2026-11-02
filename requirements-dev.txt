@@ -1,0 +1,4 @@
+-r skills/job-search/requirements.txt
+pytest>=8.0
+jsonschema>=4.0
+reportlab>=4.0

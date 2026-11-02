@@ -1,0 +1,4 @@
+# Resume fixtures and other documents are binary: never convert their line endings.
+*.pdf binary
+*.docx binary
+*.png binary

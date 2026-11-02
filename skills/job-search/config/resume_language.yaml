@@ -1,0 +1,36 @@
+# Wording used by the ATS readiness check (scripts/ats_readiness.py) and the optimizer.
+# Lower case. A bullet "starts with an action verb" when its first word is listed here,
+# or is a past-tense verb ending in -ed.
+
+action_verbs: [
+  achieved, analysed, analyzed, architected, automated, built, championed, coached, collaborated,
+  configured, contributed, coordinated, created, cut, debugged, defined, delivered, deployed,
+  designed, developed, documented, drove, engineered, enhanced, established, evaluated, expanded,
+  handled, implemented, improved, increased, integrated, introduced, launched, led, maintained,
+  managed, mentored, migrated, modernised, modernized, monitored, optimised, optimized, organised,
+  organized, owned, partnered, planned, presented, prototyped, published, rebuilt, reduced,
+  refactored, researched, resolved, reviewed, ran, saved, scaled, secured, shipped, simplified,
+  standardised, standardized, streamlined, supported, tested, trained, upgraded, won, wrote
+]
+
+# Openers that describe a duty rather than what was done.
+weak_openers: [
+  "responsible for", "worked on", "working on", "helped", "helping", "tasked with",
+  "duties included", "involved in", "in charge of", "assisted with", "participated in"
+]
+
+# Claims a reader cannot check, which crowd out the ones they can.
+filler_phrases: [
+  "hard-working", "hardworking", "hard working", "team player", "results-driven", "results driven",
+  "detail-oriented", "detail oriented", "self-motivated", "self motivated", "go-getter",
+  "think outside the box", "synergy", "dynamic individual", "passionate about", "highly motivated",
+  "motivated individual", "seeking a challenging", "proven track record", "rockstar", "ninja", "guru",
+  "excellent communication skills", "best of breed", "fast learner", "quick learner", "out of the box"
+]
+
+# Bullets longer than this are hard to scan.
+max_bullet_words: 40
+# A Skills list longer than this hides the relevant skills among the rest.
+max_listed_skills: 40
+# A term repeated this often reads as keyword stuffing.
+overuse_count: 8

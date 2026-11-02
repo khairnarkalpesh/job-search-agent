@@ -1,0 +1,161 @@
+{
+ "id": "744000159055029",
+ "name": "Chapter Area Lead – Software Testing and Test Automation",
+ "uuid": "edd1cbaa-b72b-434b-99c1-8865f0bb0cc6",
+ "jobId": "456cd322-8b84-4a12-bca8-070ac75d62fb",
+ "jobAdId": "78d1c65e-5768-4795-b0f6-4bc451b2ace5",
+ "defaultJobAd": true,
+ "refNumber": "REF299863T",
+ "company": {
+  "name": "Bosch Group",
+  "identifier": "BoschGroup"
+ },
+ "location": {
+  "city": "hosur road bangalore",
+  "country": "in",
+  "address": "plot no.76 & 77 & part 78 keonics electronic city,",
+  "postalCode": "560100",
+  "remote": false,
+  "hybrid": false,
+  "fullLocation": "hosur road bangalore, , India"
+ },
+ "customField": [
+  {
+   "fieldId": "5abe2a4ab60a5e486a2d9b1d",
+   "fieldLabel": "Contract type",
+   "valueId": "1e46492b-d24f-460c-b095-38cf08a778d8",
+   "valueLabel": "Unlimited"
+  },
+  {
+   "fieldId": "5abe28e96d8bc56863dd9746",
+   "fieldLabel": "Tariff Area",
+   "valueId": "2473485f-051f-4fbc-b802-f3620b73998c",
+   "valueLabel": "India Local Grades"
+  },
+  {
+   "fieldId": "586a997ee4b05fd937b86098",
+   "fieldLabel": "Legal Entity(acronym)",
+   "valueId": "RBEI",
+   "valueLabel": "BGSW"
+  },
+  {
+   "fieldId": "586a99b5e4b0daa006ae1079",
+   "fieldLabel": "Working Location",
+   "valueId": "Bengaluru (prev. Bangalore)",
+   "valueLabel": "Bengaluru (prev. Bangalore)"
+  },
+  {
+   "fieldId": "5abe295a6d8bc56863dd9747",
+   "fieldLabel": "Global Salary Level",
+   "valueId": "73248dc5-afe5-4862-a61b-f151e58ebb6d",
+   "valueLabel": "SL2"
+  },
+  {
+   "fieldId": "69ca83a2489188782a1e9f87",
+   "fieldLabel": "Direct Or Indirect",
+   "valueId": "1aefbf4c-c10a-422e-a975-a504a7117792",
+   "valueLabel": "Indirect"
+  },
+  {
+   "fieldId": "5abe29f9b60a5e486a2d9b1c",
+   "fieldLabel": "Working hours",
+   "valueId": "60756b3e-dbab-4353-ac3a-0064d2bb27d8",
+   "valueLabel": "Full-time"
+  },
+  {
+   "fieldId": "586a9995e4b0daa006ae1078",
+   "fieldLabel": "Legal Entity",
+   "valueId": "Robert Bosch Engineering and Business Solutions Private Ltd.",
+   "valueLabel": "Bosch Global Software Technologies Private Limited"
+  },
+  {
+   "fieldId": "691cf1c93001c782b9560ab7",
+   "fieldLabel": "Division full name",
+   "valueId": "2c84b9fd-f59a-4d8f-8666-3d3e8b6d5cef",
+   "valueLabel": "BGSW"
+  },
+  {
+   "fieldId": "5abe27936d8bc56863dd9745",
+   "fieldLabel": "Position type",
+   "valueId": "c7b4da31-6f38-405a-b2e8-08a76e3c3f2c",
+   "valueLabel": "Professional"
+  },
+  {
+   "fieldId": "COUNTRY",
+   "fieldLabel": "Country/Region",
+   "valueId": "in",
+   "valueLabel": "India"
+  },
+  {
+   "fieldId": "586a971ee4b0daa006ae1077",
+   "fieldLabel": "Brands",
+   "valueId": "default",
+   "valueLabel": "Bosch Group"
+  },
+  {
+   "fieldId": "586a996ce4b05fd937b86097",
+   "fieldLabel": "Working Country",
+   "valueId": "IN",
+   "valueLabel": "India"
+  },
+  {
+   "fieldId": "586a9b22e4b05fd937b8609a",
+   "fieldLabel": "Local Grade",
+   "valueId": "IN_SL2",
+   "valueLabel": "IN_SL2"
+  },
+  {
+   "fieldId": "586a99a5e4b05fd937b86099",
+   "fieldLabel": "Division",
+   "valueId": "RBEI",
+   "valueLabel": "BGSW"
+  }
+ ],
+ "releasedDate": "2026-11-02T06:14:14.899Z",
+ "postingUrl": "https://jobs.smartrecruiters.com/BoschGroup/744000159055029-chapter-area-lead-software-testing-and-test-automation",
+ "applyUrl": "https://jobs.smartrecruiters.com/BoschGroup/744000159055029-chapter-area-lead-software-testing-and-test-automation?oga=true",
+ "referralUrl": "https://jobs.smartrecruiters.com/external-referrals/company/BoschGroup/publication/edd1cbaa-b72b-434b-99c1-8865f0bb0cc6?dcr_ci=BoschGroup",
+ "jobAd": {
+  "sections": {
+   "companyDescription": {
+    "title": "Company Description",
+    "text": "<p><strong>Bosch Global Software Technologies Private Limited</strong> is a 100% owned subsidiary of Robert Bosch GmbH, one of the world's leading global supplier of technology and services, offering end-to-end Engineering, IT and Business Solutions. With over 27,000+ associates, it’s the largest software development center of Bosch, outside Germany, indicating that it is the Technology Powerhouse of Bosch in India with a global footprint and presence in the US, Europe and the Asia Pacific region.</p>"
+   },
+   "jobDescription": {
+    "title": "Job Description",
+    "text": "<p><strong>Roles &amp; Responsibilities :</strong><br>\n<br>\n<strong>About the role</strong></p><p>Within Bosch Digital’s Software Engineering Chapter Domain, we are looking for a senior technology and people leader to take responsibility for the Software Testing &amp; Test Automation Chapter Area.</p><p>The Chapter organization owns the professional “how”: developing expertise, establishing methods and standards, growing people and ensuring functional excellence across delivery organizations. As Chapter Area Lead, you provide direction for this field and create the environment in which Chapter Leads and testing experts can succeed.</p><p>The Chapter Area includes test automation, functional testing, load and performance testing, and test architecture. Its ambition is to strengthen end-to-end quality engineering, increase meaningful automation, develop reusable enablers and continuously improve software quality.</p><p>&#xa0;</p><p><strong>What you will be responsible for</strong></p><p>·&#xa0;&#xa0; Set the professional direction for software testing and test automation, translating business needs and technology developments into a clear capability strategy and roadmap.</p><p>·&#xa0;&#xa0; Define and evolve testing standards, methods, reference practices and guardrails while allowing teams appropriate flexibility for their product and delivery context.</p><p>·&#xa0;&#xa0; Lead, coach and develop Chapter Leads; strengthen succession, leadership capability and a culture of ownership, feedback and continuous learning.</p><p>·&#xa0;&#xa0; Build the required competence portfolio through recruiting, workforce planning, upskilling and reskilling, ensuring that expertise is available where business risk and demand are highest.</p><p>·&#xa0;&#xa0; Represent the Chapter Area toward the Software Engineering Chapter Domain, Product and Business Alliances, Tribes, regions and customers as a senior expert and thought leader.</p><p>·&#xa0;&#xa0; Drive reuse and cross-organizational adoption of test frameworks, practices and engineering enablers instead of fragmented project-specific solutions.</p><p>·&#xa0;&#xa0; Shape the evolution of AI-enabled quality engineering, continuous testing, automation, performance, security and reliability practices.</p><p>·&#xa0;&#xa0; Balance professional excellence with capacity, staffing, skill mix, utilization, cost and measurable business value.</p><p>&#xa0;</p><p><strong>What we are looking for</strong></p><p>You combine deep software-quality expertise with the ability to lead leaders, shape a global professional community and operate at the intersection of technology, people and business.</p><p>&#xa0;</p><p><strong>Leadership experience</strong></p><p>·&#xa0;&#xa0; Several years of substantial leadership experience in software engineering, IT, digital product development or a comparable technology environment.</p><p>·&#xa0;&#xa0; Experience leading leaders, multiple teams or a broad professional community rather than only one delivery team.</p><p>·&#xa0;&#xa0; A strong record of developing people, building capability and enabling others to take ownership.</p><p>·&#xa0;&#xa0; Experience influencing across functions, regions and organizational boundaries without relying solely on formal authority.</p><p><strong>&#xa0;</strong></p><p><strong>Technical and professional expertise</strong></p><p>·&#xa0;&#xa0; Recognized senior expertise in software testing, test automation or quality engineering.</p><p>·&#xa0;&#xa0; Deep understanding of software-development lifecycles, risk-based testing, test design and test-automation architecture.</p><p>·&#xa0;&#xa0; Practical knowledge across several areas: API and integration testing, functional and non-functional testing, load and performance testing, CI/CD and DevOps, test environments and data, quality metrics, secure software practices, reliability engineering.</p><p>·&#xa0;&#xa0; Ability to evaluate emerging approaches, including AI-assisted testing, and separate sustainable engineering improvements from short-lived tooling trends.</p><p><strong>&#xa0;</strong></p><p><strong>Strategic and business capability</strong></p><p>·&#xa0;&#xa0; Ability to translate technology and market developments into an actionable capability strategy.</p><p>·&#xa0;&#xa0; Sound judgment on where global standards and reuse create value and where local flexibility is necessary.</p><p>·&#xa0;&#xa0; Experience anticipating competence gaps and steering recruiting, development and deployment priorities.</p><p>·&#xa0;&#xa0; Confidence working with workforce supply and demand, capacity, staffing, investment priorities and measurable outcomes.</p><p><strong>&#xa0;</strong></p><p><strong>Communication and stakeholder leadership</strong></p><p>·&#xa0;&#xa0; Ability to explain complex engineering and quality topics in clear business terms.</p><p>·&#xa0;&#xa0; Confidence facilitating decisions where quality, delivery speed, capacity, cost and risk compete.</p><p>·&#xa0;&#xa0; Credibility with testing experts, engineering leaders, Product Owners, Product and Service Managers, architects and senior business stakeholders.</p><p>·&#xa0;&#xa0; Excellent English and the ability to work effectively across cultures and time zones.</p><p><strong>&#xa0;</strong></p><p><strong>Your leadership style</strong></p><p>·&#xa0;&#xa0; You grow by growing others and coach leaders instead of solving every problem personally.</p><p>·&#xa0;&#xa0; You lead through expertise, credibility and purpose, creating autonomy through clear alignment.</p><p>·&#xa0;&#xa0; You combine high technical standards with pragmatism, customer orientation and business judgment.</p><p>·&#xa0;&#xa0; You actively give and seek constructive feedback and create room for experimentation and learning.</p><p>·&#xa0;&#xa0; You remain effective in ambiguity, resolve conflicts constructively and take accountability for decisions.</p><p>·&#xa0;&#xa0; You think globally, are capable of managing multicultural teams, respect different contexts and build trusted networks across boundaries.</p><p><strong>&#xa0;</strong></p><p><strong>Education and experience</strong></p><p>·&#xa0;&#xa0; University degree in computer science, software engineering, engineering, business information systems or a comparable discipline, or equivalent professional experience.</p><p>·&#xa0;&#xa0; Significant professional experience in software engineering and quality engineering, including responsibility beyond a single product or project.</p><p>·&#xa0;&#xa0; Leadership experience in an international, distributed technology organization.</p><p>·&#xa0;&#xa0; Excellent English; additional languages are an advantage.</p>"
+   },
+   "qualifications": {
+    "title": "Qualifications",
+    "text": "<p><strong><u>Educational qualification:</u></strong></p><p>BE, BTech, ME, MTech, MBA</p><p><strong><u>Experience :</u></strong></p><p>15+ years of relevant experience</p><p><strong><u>Mandatory/requires Skills :</u></strong><br>\nLeadership skills</p><p><strong><u>Preferred Skills :</u></strong><br>\nBosch experience</p>"
+   },
+   "additionalInformation": {
+    "title": "Additional Information",
+    "text": ""
+   }
+  }
+ },
+ "active": true,
+ "visibility": "PUBLIC",
+ "industry": {
+  "id": "computer_software",
+  "label": "Computer Software"
+ },
+ "function": {
+  "id": "information_technology",
+  "label": "Information Technology"
+ },
+ "experienceLevel": {
+  "id": "director",
+  "label": "Director"
+ },
+ "typeOfEmployment": {
+  "id": "permanent",
+  "label": "Full-time"
+ },
+ "language": {
+  "code": "en",
+  "label": "English",
+  "labelNative": "English (US)"
+ }
+}

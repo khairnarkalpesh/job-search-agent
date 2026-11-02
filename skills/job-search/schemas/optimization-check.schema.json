@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Resume optimization check",
+  "description": "Written by scripts/resume_optimize.py verify to optimization_check.json.",
+  "type": "object",
+  "required": ["passed", "unsupported_claims", "dropped_facts", "comparison"],
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "required": ["kind", "value", "reason"],
+      "properties": {
+        "kind": {"enum": ["skill", "employer", "title", "dates", "figure", "certification", "education"]},
+        "value": {"type": "string"},
+        "reason": {"type": "string"}
+      }
+    }
+  },
+  "properties": {
+    "passed": {"type": "boolean", "description": "True only when nothing was added and nothing was lost"},
+    "unsupported_claims": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+    "dropped_facts": {"type": "array", "items": {"$ref": "#/$defs/fact"}},
+    "comparison": {
+      "type": "object",
+      "required": ["ats_score", "categories", "issues_resolved", "issues_new"],
+      "properties": {
+        "ats_score": {"type": "object", "required": ["before", "after", "change"]},
+        "categories": {"type": "object"},
+        "issues_resolved": {"type": "array", "items": {"type": "string"}},
+        "issues_new": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

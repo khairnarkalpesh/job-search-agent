@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.DS_Store
+.coverage
+.mypy_cache/
+.ruff_cache/
+
+# Local Claude settings (a machine-specific plugin path) and the old, pre-plugin copy of
+# the skill, which holds personal search data
+.claude/*

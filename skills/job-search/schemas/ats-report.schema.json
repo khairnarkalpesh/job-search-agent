@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ATS readiness report",
+  "description": "Written by scripts/resume_ats.py to ats_report.json. Holds which contact fields were found, never their values.",
+  "type": "object",
+  "required": ["ats_score", "points_assessed", "mode", "category_scores", "parsing_checks", "sections_found",
+               "formatting_risks", "overused_terms", "keywords", "job_requirements", "job", "strengths", "issues",
+               "recommendations", "additional_information_required"],
+  "$defs": {
+    "category": {
+      "type": "object",
+      "required": ["score", "max", "detail"],
+      "properties": {
+        "score": {"type": ["number", "null"], "minimum": 0, "description": "Null when not assessed"},
+        "max": {"type": "number"},
+        "detail": {"type": "string"}
+      }
+    },
+    "term": {
+      "type": "object",
+      "required": ["skill", "job_term", "on_resume", "resume_term", "supported_elsewhere"],
+      "properties": {
+        "skill": {"type": "string"},
+        "job_term": {"type": "string", "description": "The listing's own wording"},
+        "on_resume": {"enum": ["exact", "reworded", "related", "transferable", "missing"]},
+        "resume_term": {"type": "string"},
+        "supported_elsewhere": {"type": "boolean", "description": "Not on the resume, but in the reviewed profile"}
+      }
+    },
+    "requirement_check": {
+      "type": "object",
+      "required": ["status", "requirement", "detail"],
+      "properties": {
+        "status": {"enum": ["met", "failed", "unknown"]},
+        "requirement": {"type": "string"},
+        "detail": {"type": "string"}
+      }
+    }
+  },
+  "properties": {
+    "ats_score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "points_assessed": {"type": "number", "description": "100 with a job; 55 without, scaled to 100"},
+    "mode": {"enum": ["general", "job"]},
+    "category_scores": {
+      "type": "object",
+      "required": ["parsing", "structure", "keywords", "required_skills", "sections", "formatting"],
+      "additionalProperties": {"$ref": "#/$defs/category"}
+    },
+    "parsing_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["field", "status", "detail"],
+        "properties": {
+          "field": {"type": "string"},
+          "status": {"enum": ["clear", "ambiguous", "missing", "at_risk", "not_found", "not_applicable"]},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "sections_found": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["heading", "standard", "suggested"],
+        "properties": {
+          "heading": {"type": "string"},
+          "standard": {"type": ["string", "null"]},
+          "suggested": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "formatting_risks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["risk", "severity", "detail", "fix"],
+        "properties": {
+          "risk": {"type": "string"},
+          "severity": {"enum": ["high", "medium", "low"]},
+          "detail": {"type": "string"},
+          "fix": {"type": "string"}
+        }
+      }
+    },
+    "overused_terms": {
+      "type": "array",
+      "items": {"type": "object", "required": ["term", "count"],
+                "properties": {"term": {"type": "string"}, "count": {"type": "integer"}}}
+    },
+    "keywords": {
+      "type": ["object", "null"],
+      "required": ["exact", "related", "missing"],
+      "properties": {
+        "exact": {"type": "array", "items": {"type": "string"}},
+        "related": {"type": "array", "items": {"type": "object", "required": ["job_term", "resume_term", "kind"]}},
+        "missing": {"type": "array", "items": {"type": "object", "required": ["skill", "importance", "supported_elsewhere"]}}
+      }
+    },
+    "job_requirements": {
+      "type": ["object", "null"],
+      "required": ["required", "preferred", "responsibilities", "technology", "experience", "education",
+                   "certifications", "location", "seniority"],
+      "properties": {
+        "required": {"type": "array", "items": {"$ref": "#/$defs/term"}},
+        "preferred": {"type": "array", "items": {"$ref": "#/$defs/term"}},
+        "technology": {"type": "array", "items": {"$ref": "#/$defs/term"}},
+        "responsibilities": {"type": "object", "required": ["lines", "skills", "skills_on_resume"]},
+        "experience": {"type": "object", "required": ["asked", "resume_shows", "checks"]},
+        "education": {"type": "array", "items": {"$ref": "#/$defs/requirement_check"}},
+        "certifications": {"type": "array", "items": {"$ref": "#/$defs/requirement_check"}},
+        "location": {"type": "object", "required": ["listing", "remote", "status", "detail"]},
+        "seniority": {"type": "object", "required": ["listing", "resume"]}
+      }
+    },
+    "job": {
+      "type": ["object", "null"],
+      "required": ["title", "company", "source_url"]
+    },
+    "strengths": {"type": "array", "items": {"type": "string"}},
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["category", "message", "points_lost"],
+        "properties": {"category": {"type": "string"}, "message": {"type": "string"}, "points_lost": {"type": "number"}}
+      }
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["priority", "category", "action", "because", "points_at_stake"],
+        "properties": {
+          "priority": {"type": "integer", "minimum": 1},
+          "category": {"type": "string"},
+          "action": {"type": "string"},
+          "because": {"type": "string"},
+          "points_at_stake": {"type": "number"}
+        }
+      }
+    },
+    "additional_information_required": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Questions only the candidate can answer. Nothing here is added to a resume without an answer."
+    }
+  }
+}

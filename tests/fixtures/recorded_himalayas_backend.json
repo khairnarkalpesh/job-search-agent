@@ -1,0 +1,100 @@
+{
+ "comments": "Search results come 20 to a page. Pass ?page=2, ?page=3 and so on for more; there is no cursor on search. Cursor pagination (nextCursor) is only on /jobs/api, the browse feed. 13/03/2026: The API has been updated to include the companySlug field in the response.",
+ "updatedAt": 1793535867,
+ "offset": 0,
+ "limit": 20,
+ "totalCount": 5000,
+ "jobs": [
+  {
+   "title": "Backend Engineer",
+   "excerpt": "Location: US – 100% RemoteSalary: $150,000 - $200,000 base salary + equity Overview We are seeking a dynamic and passionate Backend Software Engineer to join our innovative development team.",
+   "companyName": "Xpert Development",
+   "companySlug": "xpert-development",
+   "companyLogo": "https://cdn-images.himalayas.app/qx4exn144seqko5ixsp6r09n3pxh",
+   "employmentType": "Full Time",
+   "minSalary": 150000,
+   "maxSalary": 200000,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": "USD",
+   "locationRestrictions": [
+    "United States"
+   ],
+   "timezoneRestrictions": [
+    -10,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    14
+   ],
+   "categories": [
+    "Backend-Engineering",
+    "Software-Engineer",
+    "Backend-Development",
+    "Python-Developer",
+    "Go-Developer",
+    "Backend-Engineer",
+    "Backend-Infrastructure-Engineer",
+    "Backend-Systems-Engineer",
+    "Backend-Services-Engineer",
+    "Product-Backend-Engineer",
+    "Backend-Platform-Engineer",
+    "Cloud-Backend-Engineer",
+    "Python-Backend-Engineer",
+    "SaaS-Backend-Engineer"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<h3>Location: US – 100% Remote</h3><p><strong>Salary: $150,000 - $200,000 base salary + equity<br><strong>Overview</strong></strong></p><p><strong>We are seeking a dynamic and passionate Backend Software Engineer to join our innovative development team. In this role, you will be at the forefront of designing, developing, and maintaining robust backend systems that power cutting-edge applications. Your expertise will drive the creation of scalable, efficient, and secure solutions that enhance user experiences and support business growth. If you thrive in a fast-paced environment and are eager to contribute to impactful projects, this is your opportunity to make a difference!</strong></p><p><strong><strong>Responsibilities</strong>:</strong></p><ul>\n<li><p><strong>Design and build core features for a composite AI platform, including agent-based systems, LLM integrations, and retrieval augmented generation (RAG).</strong></p></li>\n<li><p><strong>Define and own the technical vision and roadmap for the platform, making architectural decisions that enable scalability, reliability, and long-term evolution.</strong></p></li>\n<li><p><strong>Establish and promote engineering best practices, coding standards, architectural patterns, and AI assisted development techniques to ensure system quality at scale.</strong></p></li>\n<li><p><strong>Act as a senior technical leader, providing guidance on complex engineering and architectural trade-offs and shaping the overall technical direction.</strong></p></li>\n<li><p><strong>Develop high impact software solutions to address complex, mission critical business problems.</strong></p></li>\n</ul><p><strong><strong>Requirements</strong>:</strong></p><ul>\n<li><p><strong>Deep experience designing and operating large‑scale, production‑grade backend systems, with a strong understanding of distributed systems.</strong></p></li>\n<li><p><strong>Strong proficiency in Python and Go, applied to building reliable, scalable backend services.</strong></p></li>\n<li><p><strong>Demonstrated experience building and owning software from 0‑to‑1, taking systems from initial concept through production and ongoing ownership.</strong></p></li>\n<li><p><strong>Proven ability to influence technical direction and architecture at a senior or cross‑team level.</strong></p></li>\n<li><p><strong>Ability to clearly connect engineering decisions to business and product outcomes.</strong></p></li>\n</ul><p><strong><strong>Benefits</strong>:</strong></p><ul>\n<li><h3><strong>401(k)</strong></h3></li>\n<li><h3><strong>Employee assistance program</strong></h3></li>\n<li><h3><strong>Health insurance</strong></h3></li>\n</ul><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1791823984,
+   "expiryDate": 1797007984,
+   "applicationLink": "https://himalayas.app/companies/xpert-development/jobs/backend-engineer?utm_source=api",
+   "guid": "https://himalayas.app/companies/xpert-development/jobs/backend-engineer"
+  },
+  {
+   "title": "Senior Backend Engineer, Core DevOps: Container Registry",
+   "excerpt": "GitLab is the intelligent orchestration platform for DevSecOps.",
+   "companyName": "GitLab",
+   "companySlug": "gitlab-com",
+   "companyLogo": "https://cdn-images.himalayas.app/db8hi5pbq465o6fk7po3c93u6ii5",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "United Kingdom"
+   ],
+   "timezoneRestrictions": [
+    0
+   ],
+   "categories": [
+    "Backend-Engineer",
+    "DevOps-Engineer",
+    "Software-Engineer",
+    "Site-Reliability-Engineer",
+    "Senior-Backend-SRE-Engineer",
+    "Senior-Backend-Engineering",
+    "Cloud-Native-Backend-Engineer",
+    "Senior-DevOps-Platform-Engineer",
+    "Backend-Infrastructure-Engineer"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<div class=\"content-intro\">\n<p><a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> is the intelligent orchestration platform for DevSecOps. <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> enables organizations to increase developer productivity, improve operational efficiency, reduce security and compliance risk, and accelerate digital transformation. More than 50 million registered users and more than 50% of the Fortune 100* trust <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> to ship better, more secure software faster.</p>\n<p>The same principles built into our products are reflected in how our team works: we embrace AI as a core productivity multiplier, with all team members expected to incorporate AI into their daily workflows to drive efficiency, innovation, and impact. <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> is where careers accelerate, innovation flourishes, and every voice is valued. Our high-performance culture is driven by our values and continuous knowledge exchange, enabling our team members to reach their full potential while collaborating with industry leaders to solve complex problems. Co-create the future with us as we build technology that transforms how the world develops software.</p>\n<p>*<em>Fortune 500® is a registered trademark of Fortune Media IP Limited, used under license. Claim based on <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> data. Fortune 100 refers to the top 20% ranked companies in the 2025 Fortune 500 list, published in June 2025. Fortune and Fortune Media IP Limited are not affiliated with, and do not endorse products or services of <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a>.</em></p>\n</div><h3>About the role</h3><p>As a Senior Backend Engineer, you will design, implement, and evolve product capabilities while solving high-scope backend problems and influencing the technical and product direction of our teams. You will move beyond \"assigned work\" to actively improve the quality, reliability, and performance of our systems. You will work across product, frontend, infrastructure, data, and security boundaries, making sound architectural trade-offs, communicating complex ideas clearly in an asynchronous environment, and helping define the standards for a high-scale, global product.</p><h3>Why you’ll love this role</h3><ul>\n<li>\n<strong>High Impact: </strong>You aren't just shipping features; you are shaping the architecture of a global platform used by millions.</li>\n<li>\n<strong>Technical Agency: </strong>You will influence team objectives, technical direction, and long-range goals, helping us solve problems of high scope and complexity.</li>\n<li>\n<strong>Innovative Culture: </strong>You will get to experiment with and integrate agentic AI into production engineering workflows, moving beyond simple prompt engineering to build resilient, AI-assisted systems.</li>\n<li>\n<strong>Autonomy: </strong>You will thrive in our remote-first, asynchronous organization, where clear written communication and self-direction are the pillars of success.</li>\n<li>\n<strong>User-Centric Collaboration: </strong>You’ll partner closely with PMs and designers to shape requirements, ensuring every technical decision delivers genuine value to our users.</li>\n</ul><div class=\"c-message_actions__container c-message__actions\">\n<h3>What you’ll do</h3>\n<ul>\n<li>\n<strong>Drive Technical Direction: </strong>Design and ship moderate to complex backend features with minimal guidance, making pragmatic choices between modular-monolith code, shared components, or independently operated services.</li>\n<li>\n<strong>Raise the Bar: </strong>Advocate for product quality, security, availability, and performance. You will define backend standards for style, maintainability, testing, APIs, and operational readiness.</li>\n<li>\n<strong>Mentor &amp; Lead: </strong>Mentor associate and intermediate engineers, remove technical blockers, and improve team delivery practices through code and design reviews.</li>\n<li>\n<strong>Operational Excellence: </strong>Diagnose and prevent performance/reliability issues at scale. Participate in incident response and act as a technical owner where appropriate.</li>\n<li>\n<strong>AI Integration: </strong>Use AI in production engineering work to improve outcomes, evaluate its effectiveness, and coach others on responsible, high-judgment use.</li>\n</ul>\n<h3>What you’ll bring</h3>\n<ul>\n<li>\n<strong>Deep Backend Expertise: </strong>A strong command of backend architecture, APIs, data systems, and performance tuning in a complex product or service environment.</li>\n<li>\n<strong>Adaptability: </strong>Proficiency in modern backend languages and a deep understanding of systems programming. We value the ability to learn and adapt over mastery of a single language.</li>\n<li>\n<strong>Architectural Judgment: </strong>Experience designing or evolving modular backend boundaries, bounded contexts, and migration-safe architectures.</li>\n<li>\n<strong>Influence: </strong>Ability to lead through influence, technical judgment, and clear written communication, effectively bridging the gap between product needs and technical reality.</li>\n<li>\n<strong>Agentic AI Expertise: </strong>Proven experience building or operating agentic systems in production—moving beyond prompt engineering to architecting loops, tool-use, and error-handling strategies that ensure reliability at scale.</li>\n</ul>\n</div><div class=\"content-conclusion\">\n<h4><strong>How <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> Supports Full-Time Employees</strong></h4>\n<ul>\n<li>Benefits to support your health, finances, and well-being</li>\n<li>Flexible Paid Time Off </li>\n<li>Team Member Resource Groups</li>\n<li>Equity Compensation &amp; Employee Stock Purchase Plan</li>\n<li>Growth and Development Fund</li>\n<li>Parental Leave</li>\n</ul>\n<p>Please note that we welcome interest from candidates with varying levels of experience; many successful candidates do not meet every single requirement. Additionally, studies have shown that people from underrepresented groups are less likely to apply to a job unless they meet every single qualification. If you're excited about this role, please apply and allow our recruiters to assess your application.</p>\n<hr>\n<p><strong>Country Hiring Guidelines: </strong><a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> hires new team members in countries around the world. All of our roles are remote, however some roles may carry specific location-based eligibility requirements. Our Talent Acquisition team can help answer any questions about location after starting the recruiting process.  </p>\n<p><strong>Privacy Policy: </strong>Please review our Recruitment Privacy Policy. Your privacy is important to us.</p>\n<p><a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> is proud to be an equal opportunity workplace and is an affirmative action employer. <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a>’s policies and practices relating to recruitment, employment, career development and advancement, promotion, and retirement are based solely on merit, regardless of race, color, religion, ancestry, sex (including pregnancy, lactation, sexual orientation, gender identity, or gender expression), national origin, age, citizenship, marital status, mental or physical disability, genetic information (including family medical history), discharge status from the military, protected veteran status (which includes disabled veterans, recently separated veterans, active duty wartime or campaign badge veterans, and Armed Forces service medal veterans), or any other basis protected by law. <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a> will not tolerate discrimination or harassment based on any of these characteristics. See also <a href=\"https://himalayas.app/companies/gitlab-com\">GitLab</a>’s EEO Policy and EEO is the Law. If you have a disability or special need that requires accommodation, please let us know during the recruiting process.</p>\n</div><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1791685765,
+   "expiryDate": 1796869764,
+   "applicationLink": "https://himalayas.app/companies/gitlab-com/jobs/senior-backend-engineer-core-devops-container-registry?utm_source=api",
+   "guid": "https://himalayas.app/companies/gitlab-com/jobs/senior-backend-engineer-core-devops-container-registry"
+  }
+ ]
+}

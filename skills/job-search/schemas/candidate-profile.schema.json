@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Candidate profile",
+  "type": "object",
+  "required": ["candidate", "skills", "experience", "education", "certifications", "projects", "target_roles", "preferred_locations", "remote_preference", "evidence"],
+  "properties": {
+    "synthetic": {"type": "boolean", "description": "True when built from a labelled synthetic test resume."},
+    "candidate": {
+      "type": "object",
+      "required": ["name", "location", "years_of_experience", "current_role", "seniority"],
+      "properties": {
+        "name": {"type": "string"},
+        "location": {"type": "string"},
+        "years_of_experience": {"type": ["number", "null"], "minimum": 0},
+        "current_role": {"type": "string"},
+        "seniority": {"type": "string", "enum": ["", "intern", "junior", "mid", "senior", "staff", "principal"]}
+      }
+    },
+    "skills": {
+      "type": "object",
+      "required": ["programming_languages", "frameworks", "databases", "cloud", "devops", "ai_ml", "frontend", "backend", "other"],
+      "additionalProperties": {"type": "array", "items": {"type": "string"}}
+    },
+    "experience": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["company", "role", "duration", "technologies", "responsibilities", "achievements"],
+        "properties": {
+          "company": {"type": "string"},
+          "role": {"type": "string"},
+          "duration": {"type": "string"},
+          "technologies": {"type": "array", "items": {"type": "string"}},
+          "responsibilities": {"type": "array", "items": {"type": "string"}},
+          "achievements": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    },
+    "education": {"type": "array", "items": {"type": "string"}},
+    "certifications": {"type": "array", "items": {"type": "string"}},
+    "projects": {"type": "array", "items": {"type": "string"}},
+    "languages": {"type": "array", "items": {"type": "string"}},
+    "target_roles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["title", "family", "role_relevance", "confidence", "reason"],
+        "properties": {
+          "title": {"type": "string"},
+          "family": {"type": "string"},
+          "role_relevance": {"type": "number", "minimum": 0, "maximum": 1},
+          "confidence": {"type": "string", "enum": ["high", "medium", "low"]},
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "preferred_locations": {"type": "array", "items": {"type": "string"}},
+    "remote_preference": {"type": ["string", "null"]},
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "type", "evidence", "confidence"],
+        "properties": {
+          "item": {"type": "string"},
+          "type": {"type": "string", "enum": ["explicit", "inferred"]},
+          "evidence": {"type": "string"},
+          "confidence": {"type": "string", "enum": ["high", "medium", "low"]}
+        }
+      }
+    }
+  }
+}

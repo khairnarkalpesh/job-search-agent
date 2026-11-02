@@ -1,0 +1,279 @@
+# Knowledge base used for matching. This is the only place to edit when adding
+# skills, role families or locations; no code change is needed.
+#
+# skills:
+#   cat      category key used in the candidate profile
+#   aliases  spellings to look for in text (the skill name is always included)
+#   cs       true = aliases are case-sensitive (needed for "Go", "REST", "R")
+#   related  closely related skills. Candidate having one = RELATED (0.7 credit)
+#   group    skills in the same group = TRANSFERABLE (0.4 credit)
+# A pair that is neither related nor grouped is MISSING. Keep groups narrow:
+# Java and Node.js deliberately share neither, because they are not equivalent.
+
+skills:
+  # Languages
+  Java: {cat: programming_languages, group: jvm, aliases: [Java, Core Java, J2EE, Java EE, Jakarta EE]}
+  Kotlin: {cat: programming_languages, group: jvm, related: [Java]}
+  Scala: {cat: programming_languages, group: jvm}
+  Python: {cat: programming_languages, group: dynamic_backend}
+  Ruby: {cat: programming_languages, group: dynamic_backend}
+  PHP: {cat: programming_languages, group: dynamic_backend}
+  Go: {cat: programming_languages, group: systems, cs: true, aliases: [Go, Golang, GoLang]}
+  Rust: {cat: programming_languages, group: systems}
+  C++: {cat: programming_languages, group: systems, aliases: [C++, CPP, Cpp]}
+  C: {cat: programming_languages, group: systems, cs: true, aliases: ["C/C++", "C programming", "ANSI C"]}
+  C#: {cat: programming_languages, group: dotnet, aliases: [C#, CSharp, C Sharp]}
+  JavaScript: {cat: programming_languages, group: web_lang, aliases: [JavaScript, ES6, ECMAScript], related: [TypeScript]}
+  TypeScript: {cat: programming_languages, group: web_lang, related: [JavaScript]}
+  Swift: {cat: programming_languages, group: mobile_lang, cs: true}
+  Objective-C: {cat: programming_languages, group: mobile_lang, aliases: [Objective-C, ObjC]}
+  R: {cat: programming_languages, cs: true, aliases: ["R programming", "R language", "R/Python", "Python/R", "R or Python", "Python or R"]}
+  SQL: {cat: programming_languages, cs: true, aliases: [SQL, T-SQL, PL/SQL], related: [PostgreSQL, MySQL, Oracle Database, SQL Server]}
+  Bash: {cat: programming_languages, aliases: [Bash, Shell scripting, Shell script]}
+
+  # Backend frameworks
+  Spring Boot: {cat: frameworks, group: java_web, aliases: [Spring Boot, SpringBoot], related: [Spring Framework, Java]}
+  Spring Framework: {cat: frameworks, group: java_web, aliases: [Spring Framework, Spring MVC, Spring], related: [Spring Boot], cs: true}
+  Hibernate: {cat: frameworks, group: java_web, aliases: [Hibernate, JPA], related: [Spring Boot]}
+  Microservices: {cat: backend, aliases: [Microservices, Microservice, Micro-services, Distributed systems, Service-oriented architecture, SOA], related: [Spring Boot]}
+  Node.js: {cat: frameworks, group: js_backend, aliases: [Node.js, NodeJS, Node], cs: true, related: [Express.js, NestJS]}
+  Express.js: {cat: frameworks, group: js_backend, aliases: [Express.js, ExpressJS], related: [Node.js]}
+  NestJS: {cat: frameworks, group: js_backend, aliases: [NestJS, Nest.js], related: [Node.js]}
+  Django: {cat: frameworks, group: python_web, related: [Python, Flask, FastAPI]}
+  Flask: {cat: frameworks, group: python_web, related: [Python, Django, FastAPI]}
+  FastAPI: {cat: frameworks, group: python_web, related: [Python, Django, Flask]}
+  Ruby on Rails: {cat: frameworks, aliases: [Ruby on Rails, Rails, RoR], related: [Ruby]}
+  Laravel: {cat: frameworks, related: [PHP]}
+  .NET: {cat: frameworks, aliases: [.NET, ASP.NET, .NET Core, Dotnet], related: [C#]}
+
+  # API and architecture concepts
+  REST APIs: {cat: backend, cs: true, aliases: [REST, RESTful, REST API, REST APIs, Rest API, Rest APIs, RESTful APIs], group: api_style}
+  GraphQL: {cat: backend, group: api_style}
+  gRPC: {cat: backend, aliases: [gRPC, GRPC], group: api_style}
+  System Design: {cat: backend, aliases: [System design, Systems design, Scalable systems]}
+  OOP: {cat: backend, cs: true, aliases: [OOP, OOPS, Object-oriented, Object oriented]}
+  Data Structures: {cat: backend, aliases: [Data structures, Algorithms]}
+
+  # Frontend
+  React: {cat: frontend, group: spa_framework, aliases: [React, React.js, ReactJS], cs: true, related: [Next.js, Redux, JavaScript]}
+  Next.js: {cat: frontend, group: spa_framework, aliases: [Next.js, NextJS], related: [React]}
+  Redux: {cat: frontend, related: [React]}
+  Angular: {cat: frontend, group: spa_framework, aliases: [Angular, AngularJS]}
+  Vue.js: {cat: frontend, group: spa_framework, aliases: [Vue, Vue.js, VueJS]}
+  HTML: {cat: frontend, cs: true, aliases: [HTML, HTML5]}
+  CSS: {cat: frontend, cs: true, aliases: [CSS, CSS3, Sass, SCSS, Tailwind]}
+
+  # Mobile
+  Android: {cat: other, cs: true, group: mobile_platform, related: [Kotlin]}
+  iOS: {cat: other, cs: true, group: mobile_platform, related: [Swift]}
+  React Native: {cat: frontend, related: [React], group: mobile_platform}
+  Flutter: {cat: frontend, group: mobile_platform}
+
+  # Databases
+  PostgreSQL: {cat: databases, group: relational, aliases: [PostgreSQL, Postgres], related: [MySQL, SQL]}
+  MySQL: {cat: databases, group: relational, related: [PostgreSQL, SQL]}
+  Oracle Database: {cat: databases, group: relational, aliases: [Oracle Database, Oracle DB, Oracle], cs: true, related: [SQL]}
+  SQL Server: {cat: databases, group: relational, aliases: [SQL Server, MSSQL], related: [SQL]}
+  MongoDB: {cat: databases, group: nosql, aliases: [MongoDB, Mongo]}
+  DynamoDB: {cat: databases, group: nosql, related: [AWS]}
+  Cassandra: {cat: databases, group: nosql}
+  Redis: {cat: databases, group: cache}
+  Elasticsearch: {cat: databases, aliases: [Elasticsearch, Elastic Search, OpenSearch]}
+  Snowflake: {cat: databases, group: warehouse}
+  BigQuery: {cat: databases, group: warehouse, related: [GCP]}
+
+  # Cloud
+  AWS: {cat: cloud, group: cloud_provider, aliases: [AWS, Amazon Web Services], related: [AWS Lambda]}
+  AWS Lambda: {cat: cloud, aliases: [AWS Lambda, Lambda], cs: true, related: [AWS]}
+  Azure: {cat: cloud, group: cloud_provider, aliases: [Azure, Microsoft Azure]}
+  GCP: {cat: cloud, group: cloud_provider, aliases: [GCP, Google Cloud, Google Cloud Platform]}
+
+  # DevOps
+  Docker: {cat: devops, group: containers, aliases: [Docker, Containerization, Containers]}
+  Kubernetes: {cat: devops, group: containers, aliases: [Kubernetes, K8s, k8s, EKS, GKE, AKS, Helm]}
+  Terraform: {cat: devops, group: iac, aliases: [Terraform, Infrastructure as code, IaC]}
+  Ansible: {cat: devops, group: iac}
+  CI/CD: {cat: devops, aliases: [CI/CD, CICD, Continuous integration, Continuous delivery, Jenkins, GitHub Actions, GitLab CI, CircleCI]}
+  Git: {cat: devops, cs: true, aliases: [Git, GitHub, GitLab, Bitbucket]}
+  Linux: {cat: devops, aliases: [Linux, Unix]}
+  Prometheus: {cat: devops, group: observability, aliases: [Prometheus, Grafana]}
+  Datadog: {cat: devops, group: observability, aliases: [Datadog, New Relic, Splunk]}
+
+  # Messaging and data
+  Kafka: {cat: backend, group: messaging, aliases: [Kafka, Apache Kafka]}
+  RabbitMQ: {cat: backend, group: messaging, aliases: [RabbitMQ, ActiveMQ, SQS, Pub/Sub]}
+  Apache Spark: {cat: ai_ml, group: big_data, aliases: [Apache Spark, Spark, PySpark], cs: true}
+  Airflow: {cat: ai_ml, aliases: [Airflow, Apache Airflow]}
+  dbt: {cat: ai_ml, cs: true, aliases: [dbt, DBT]}
+  ETL: {cat: ai_ml, cs: true, aliases: [ETL, ELT, Data pipelines, Data pipeline]}
+
+  # AI / ML
+  Machine Learning: {cat: ai_ml, aliases: [Machine learning, ML models], related: [Deep Learning]}
+  Deep Learning: {cat: ai_ml, related: [Machine Learning, PyTorch, TensorFlow]}
+  PyTorch: {cat: ai_ml, group: dl_framework}
+  TensorFlow: {cat: ai_ml, group: dl_framework}
+  LLMs: {cat: ai_ml, aliases: [LLM, LLMs, Large language models, RAG, Generative AI, GenAI, LangChain]}
+
+  # Practice
+  Agile: {cat: other, aliases: [Agile, Scrum, Kanban]}
+  Testing: {cat: other, aliases: [Unit testing, Integration testing, JUnit, Mockito, TDD, Test-driven, pytest, Jest, Selenium, Cypress]}
+
+# Role families. `signals` decide how well a resume fits a family; `titles` are
+# the realistic job titles to target; `title_patterns` classify job postings.
+# Order matters for title_patterns: first match wins, specific before general.
+role_families:
+  not_engineering:
+    title_patterns: ['\b(sales|account (executive|manager)|recruit|talent|marketing|legal|counsel|finance|accountant|payroll|customer success|business partner|business development|human resources|hr\b|people partner|designer|product manager|program manager|project manager|procurement|paralegal|copywriter|sourcer|support specialist|technical writer|solutions? (consultant|engineer|architect)|sales engineer)']
+  other_engineering:
+    title_patterns: ['\b(mechanical|electrical|civil|manufacturing|chemical|process|field|network|sales|hardware|industrial|structural|aerospace|mechatronics|test technician) engineer']
+  management:
+    title_patterns: ['\b(engineering manager|manager, |manager of|director|vp\b|vice president|head of|chief)']
+  mobile:
+    signals: [Android, iOS, Swift, Kotlin, React Native, Flutter, Objective-C]
+    titles: [Mobile Engineer, Android Developer, iOS Developer]
+    title_patterns: ['\b(mobile|android|ios|flutter|react native)\b']
+  ml_ai:
+    signals: [Machine Learning, Deep Learning, PyTorch, TensorFlow, LLMs]
+    titles: [Machine Learning Engineer, AI Engineer, Applied Scientist]
+    title_patterns: ['\b(machine learning|ml|ai|llm|applied scientist|research scientist|data scientist|deep learning)\b']
+  data_engineering:
+    signals: [Apache Spark, Airflow, dbt, ETL, Snowflake, BigQuery, Kafka]
+    titles: [Data Engineer, Analytics Engineer, Data Platform Engineer]
+    title_patterns: ['\b(data engineer|analytics engineer|data platform|etl|data infrastructure|big data)\b']
+  devops_sre:
+    signals: [Kubernetes, Terraform, Ansible, CI/CD, Docker, Linux, Prometheus]
+    titles: [DevOps Engineer, Site Reliability Engineer, Cloud Engineer]
+    title_patterns: ['\b(devops|site reliability|sre|cloud engineer|infrastructure engineer|release engineer|devsecops)\b']
+  platform:
+    signals: [Kubernetes, Kafka, Microservices, Docker, Terraform, AWS, System Design]
+    titles: [Platform Engineer, Infrastructure Software Engineer]
+    title_patterns: ['\b(platform|distributed systems|infrastructure)\b']
+  security:
+    signals: []
+    titles: []
+    title_patterns: ['\b(security engineer|appsec|application security|penetration|detection engineer|security analyst)\b']
+  qa:
+    signals: [Testing]
+    titles: []
+    title_patterns: ['\b(qa|quality assurance|quality engineer|quality engineering|sdet|test engineer|test automation|engineer in test|engineer - testing|engineer, testing|software tester)\b']
+  embedded:
+    signals: [C, C++]
+    titles: [Embedded Software Engineer]
+    title_patterns: ['\b(embedded|firmware|kernel|hardware|asic|fpga)\b']
+  fullstack:
+    signals: [React, Next.js, Angular, Vue.js, Node.js, TypeScript, JavaScript, REST APIs]
+    titles: [Full Stack Engineer, Full Stack Developer]
+    title_patterns: ['\b(full[- ]?stack)\b']
+  frontend:
+    signals: [React, Next.js, Angular, Vue.js, TypeScript, JavaScript, HTML, CSS, Redux]
+    titles: [Frontend Engineer, Frontend Developer, UI Engineer, React Developer]
+    title_patterns: ['\b(front[- ]?end|ui engineer|ui developer|web developer|react developer|react engineer)\b']
+  backend:
+    signals: [Java, Spring Boot, Spring Framework, Python, Django, Flask, FastAPI, Go, Node.js, Ruby on Rails, .NET, C#, PHP, Microservices, REST APIs, SQL, Kafka, Hibernate]
+    titles: [Backend Engineer, Backend Developer, Software Engineer, Software Development Engineer]
+    title_patterns: ['\b(back[- ]?end|api engineer|server[- ]side|java (developer|engineer)|python (developer|engineer)|golang (developer|engineer)|go (developer|engineer)|spring boot|node(\.js)? (developer|engineer))\b']
+  general_software:
+    signals: []
+    titles: []
+    title_patterns: ['\b(software (development )?engineer|software developer|sde|swe|member of technical staff|mts|programmer|developer|application engineer|product engineer)\b']
+  # A bare "Engineer" could be software or footwear. It stays in the search, with
+  # a low role score, and the listing's own skills have to carry the match.
+  unspecified_engineer:
+    signals: []
+    titles: []
+    title_patterns: ['\bengineer\b']
+
+# Families reachable from another family count as adjacent in the role score.
+adjacent_families:
+  backend: [platform, fullstack, general_software, data_engineering]
+  frontend: [fullstack, general_software]
+  fullstack: [backend, frontend, general_software]
+  devops_sre: [platform, general_software]
+  platform: [backend, devops_sre, general_software]
+  data_engineering: [backend, platform, general_software]
+  ml_ai: [data_engineering, general_software]
+  mobile: [general_software]
+  embedded: [general_software]
+
+# Language-specific titles generated when a language is a strong resume signal.
+language_titles:
+  Java: [Java Developer, Java Backend Engineer, Java Software Engineer]
+  Spring Boot: [Spring Boot Developer]
+  Python: [Python Developer, Python Backend Engineer]
+  Go: [Golang Developer]
+  Node.js: [Node.js Developer]
+  C#: [.NET Developer]
+
+locations:
+  countries:
+    india: [India, Bangalore, Bengaluru, Hyderabad, Pune, Mumbai, Delhi, New Delhi, NCR, Gurgaon, Gurugram, Noida, Chennai, Kolkata, Ahmedabad, Kochi, Jaipur, Coimbatore, Indore]
+    united_states: [United States, USA, U.S., US, America, San Francisco, SF, New York, NYC, Seattle, Austin, Boston, Chicago, Denver, Los Angeles, Atlanta, Washington DC, Palo Alto, Mountain View, Sunnyvale, San Jose, San Diego, Portland, Philadelphia, Dallas, Miami, Salt Lake City, Pittsburgh, Raleigh, Remote-US, ", CA", ", NY", ", WA", ", TX", ", MA", ", IL", ", CO", ", GA", ", NC", ", VA", ", PA", ", FL", ", UT", ", OR", ", AZ", ", MN", ", NJ", ", OH", ", MI"]
+    canada: [Canada, Toronto, Vancouver, Montreal, Ottawa, Calgary, Waterloo]
+    united_kingdom: [United Kingdom, UK, U.K., England, Scotland, London, Manchester, Edinburgh, Cambridge, Bristol]
+    ireland: [Ireland, Dublin]
+    germany: [Germany, Berlin, Munich, Hamburg, Frankfurt]
+    france: [France, Paris]
+    netherlands: [Netherlands, Amsterdam, Rotterdam]
+    spain: [Spain, Madrid, Barcelona]
+    portugal: [Portugal, Lisbon, Porto]
+    italy: [Italy, Milan, Rome]
+    poland: [Poland, Warsaw, Krakow]
+    sweden: [Sweden, Stockholm]
+    switzerland: [Switzerland, Zurich, Geneva]
+    israel: [Israel, Tel Aviv]
+    uae: [UAE, United Arab Emirates, Dubai, Abu Dhabi]
+    singapore: [Singapore]
+    japan: [Japan, Tokyo]
+    south_korea: [South Korea, Korea, Seoul]
+    china: [China, Shanghai, Beijing, Shenzhen]
+    hong_kong: [Hong Kong]
+    australia: [Australia, Sydney, Melbourne]
+    new_zealand: [New Zealand, Auckland]
+    brazil: [Brazil, Sao Paulo, São Paulo]
+    mexico: [Mexico, Mexico City]
+    argentina: [Argentina, Buenos Aires]
+    colombia: [Colombia, Bogota]
+    philippines: [Philippines, Manila]
+    saudi_arabia: [Saudi Arabia, Riyadh, Jeddah]
+    qatar: [Qatar, Doha]
+    egypt: [Egypt, Cairo]
+    turkey: [Turkey, Türkiye, Istanbul]
+    south_africa: [South Africa, Cape Town, Johannesburg]
+    nigeria: [Nigeria, Lagos]
+    kenya: [Kenya, Nairobi]
+    pakistan: [Pakistan, Karachi, Lahore]
+    bangladesh: [Bangladesh, Dhaka]
+    sri_lanka: [Sri Lanka, Colombo]
+    thailand: [Thailand, Bangkok]
+    vietnam: [Vietnam, Ho Chi Minh, Hanoi]
+    malaysia: [Malaysia, Kuala Lumpur]
+    indonesia: [Indonesia, Jakarta]
+    taiwan: [Taiwan, Taipei]
+    romania: [Romania, Bucharest, Cluj]
+    bulgaria: [Bulgaria, Sofia]
+    serbia: [Serbia, Belgrade]
+    croatia: [Croatia, Zagreb]
+    ukraine: [Ukraine, Kyiv]
+    greece: [Greece, Athens]
+    czechia: [Czech Republic, Czechia, Prague]
+    hungary: [Hungary, Budapest]
+    austria: [Austria, Vienna]
+    belgium: [Belgium, Brussels]
+    denmark: [Denmark, Copenhagen]
+    norway: [Norway, Oslo]
+    finland: [Finland, Helsinki]
+    chile: [Chile, Santiago]
+    peru: [Peru, Lima]
+    costa_rica: [Costa Rica, San Jose, Costa Rica]
+    uruguay: [Uruguay, Montevideo]
+  regions:
+    emea: [united_kingdom, ireland, germany, france, netherlands, spain, portugal, italy, poland, sweden, switzerland, israel, uae]
+    europe: [united_kingdom, ireland, germany, france, netherlands, spain, portugal, italy, poland, sweden, switzerland]
+    eu: [ireland, germany, france, netherlands, spain, portugal, italy, poland, sweden]
+    apac: [india, singapore, japan, south_korea, china, hong_kong, australia, new_zealand, philippines]
+    asia: [india, singapore, japan, south_korea, china, hong_kong, philippines]
+    latam: [brazil, mexico, argentina, colombia]
+    americas: [united_states, canada, brazil, mexico, argentina, colombia]
+    north america: [united_states, canada, mexico]
+    oceania: [australia, new_zealand]
+  global_terms: [Global, Worldwide, Anywhere, Work from anywhere]

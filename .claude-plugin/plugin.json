@@ -1,0 +1,10 @@
+{
+  "name": "job-search-agent",
+  "description": "Seven Claude skills that find real, open jobs for your resume and score each one 0-100 with the reasons and the gaps: a full search across company job boards (Greenhouse, Lever, Ashby, Workable, SmartRecruiters), job portals (Remotive, Remote OK, Himalayas, Arbeitnow) and company career websites; a reviewed resume profile; a single-job matcher that also takes pasted LinkedIn or Naukri listings; a company watch list; a skill-gap report; an explainable ATS Readiness check of the resume file; and a resume optimizer that targets a job and fact-checks the rewrite so nothing is invented.",
+  "version": "1.0.0",
+  "author": { "name": "Kalpesh Khairnar", "url": "https://github.com/khairnarkalpesh" },
+  "homepage": "https://github.com/khairnarkalpesh/job-search-agent",
+  "repository": "https://github.com/khairnarkalpesh/job-search-agent",
+  "license": "MIT",
+  "keywords": ["jobs", "job-search", "resume", "careers", "ats", "resume-optimization", "greenhouse", "lever", "ashby", "workable", "remote-jobs"]
+}

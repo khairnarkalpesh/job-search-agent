@@ -1,0 +1,11 @@
+# Your saved job preferences. Everything is empty on purpose: the tool never
+# invents a preference. Empty values fall back to what the resume says.
+# Update with --save-preferences, or edit by hand.
+job_preferences:
+  target_locations: []       # e.g. [Remote, Bangalore, Pune]
+  target_roles: []           # e.g. [Backend Engineer, Java Developer]
+  minimum_match_score: null  # e.g. 80
+  preferred_sources: []      # greenhouse, lever, generic
+  employment_types: []       # e.g. [full_time]
+  work_authorization: []     # countries you may legally work in, e.g. [India]
+  remote_preference: null    # remote_only, hybrid_ok, onsite_ok

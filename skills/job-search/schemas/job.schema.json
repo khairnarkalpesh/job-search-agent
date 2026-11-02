@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Scored job result",
+  "type": "object",
+  "required": ["job_id", "company", "title", "location", "url", "source", "date_found", "match_score", "score_breakdown", "matched_skills", "missing_skills", "hard_requirements", "status"],
+  "properties": {
+    "job_id": {"type": "string", "minLength": 1},
+    "company": {"type": "string"},
+    "title": {"type": "string", "minLength": 1},
+    "location": {"type": "string"},
+    "url": {"type": "string", "pattern": "^https?://"},
+    "source": {"type": "string", "enum": ["greenhouse", "lever", "ashby", "workable", "smartrecruiters", "remotive", "remoteok", "himalayas", "arbeitnow", "generic", "manual"]},
+    "date_found": {"type": "string"},
+    "match_score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "category": {"type": "string", "enum": ["Excellent Match", "Strong Match", "Good Match", "Possible Match", "Low Match"]},
+    "score_breakdown": {
+      "type": "object",
+      "required": ["skills", "experience", "role", "qualifications", "technology", "location", "seniority"],
+      "additionalProperties": true
+    },
+    "matched_skills": {"type": "array", "items": {"type": "object"}},
+    "missing_skills": {"type": "array", "items": {"type": "string"}},
+    "missing_required_skills": {"type": "array", "items": {"type": "string"}},
+    "hard_requirements": {
+      "type": "object",
+      "required": ["hard_requirements_met", "hard_requirements_failed", "unknown_requirements"]
+    },
+    "why_match": {"type": "array", "items": {"type": "string"}},
+    "gaps": {"type": "array", "items": {"type": "string"}},
+    "reliable": {"type": "boolean"},
+    "seen": {"type": "string", "enum": ["NEW JOB", "PREVIOUSLY SEEN"]},
+    "status": {"type": "string", "enum": ["new", "reviewed", "saved", "rejected", "applied", "interview", "offer", "closed"]}
+  }
+}
