@@ -145,5 +145,25 @@ class GenericSource(Source):
             except FetchError:
                 continue
         if not jobs:
+            system = unsupported_hiring_system(markup, board.slug)
+            if system:
+                raise FetchError("malformed", board.slug, f"this company hires through {system}, which has no public "
+                                 "job feed this tool can read; open the listing yourself and paste it into /job-match")
             raise FetchError("malformed", board.slug, "no machine-readable job listings on this page")
         return jobs
+
+
+# Hiring systems common in India and elsewhere that publish no feed this tool can read.
+# Recognised so the user is told where the jobs are, instead of "no listings".
+UNSUPPORTED_HIRING_SYSTEMS = {
+    "darwinbox.in": "Darwinbox", "darwinbox.com": "Darwinbox", "keka.com": "Keka", "zohorecruit.com": "Zoho Recruit",
+    "zohorecruit.in": "Zoho Recruit", "freshteam.com": "Freshteam", "myworkdayjobs.com": "Workday",
+    "taleo.net": "Taleo", "icims.com": "iCIMS", "successfactors.com": "SAP SuccessFactors",
+}
+
+
+def unsupported_hiring_system(markup: str, page_url: str) -> str:
+    """The name of a known unsupported hiring system the page is on or links to, or ""."""
+    haystack = f"{page_url} {markup}".lower()
+    return next((name for host, name in UNSUPPORTED_HIRING_SYSTEMS.items()
+                 if re.search(rf"[/.]{re.escape(host)}\b", haystack)), "")

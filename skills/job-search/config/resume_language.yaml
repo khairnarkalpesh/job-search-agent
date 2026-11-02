@@ -32,5 +32,7 @@ filler_phrases: [
 max_bullet_words: 40
 # A Skills list longer than this hides the relevant skills among the rest.
 max_listed_skills: 40
-# A term repeated this often reads as keyword stuffing.
+# A term repeated this often, and making up this share of all words, reads as keyword stuffing.
+# Both must hold, so a long frontend resume can name CSS often without being flagged.
 overuse_count: 8
+overuse_share: 0.02

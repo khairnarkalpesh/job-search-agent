@@ -22,7 +22,7 @@
       "properties": {
         "skill": {"type": "string"},
         "job_term": {"type": "string", "description": "The listing's own wording"},
-        "on_resume": {"enum": ["exact", "reworded", "related", "transferable", "missing"]},
+        "on_resume": {"enum": ["exact", "reworded", "related", "transferable", "unverified", "missing"]},
         "resume_term": {"type": "string"},
         "supported_elsewhere": {"type": "boolean", "description": "Not on the resume, but in the reviewed profile"}
       }
@@ -88,6 +88,7 @@
       "items": {"type": "object", "required": ["term", "count"],
                 "properties": {"term": {"type": "string"}, "count": {"type": "integer"}}}
     },
+    "unrecognized_skills": {"type": "array", "items": {"type": "string"}, "description": "Skills-section items the taxonomy does not know; never matched against a listing"},
     "keywords": {
       "type": ["object", "null"],
       "required": ["exact", "related", "missing"],

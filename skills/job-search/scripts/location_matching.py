@@ -45,6 +45,38 @@ def countries_in(text: str) -> set[str]:
     return found
 
 
+def _named(term: str, text: str) -> bool:
+    return bool(re.search(rf"(?<![\w.]){re.escape(term)}(?![\w])", text, re.IGNORECASE))
+
+
+def states_named(text: str) -> set[str]:
+    """States a location names outright: "Maharashtra, India" names Maharashtra; "Pune" does not."""
+    return {state for state in taxonomy()["locations"].get("states", {}) if _named(state, text)}
+
+
+def states_of(text: str) -> set[str]:
+    """States a location is in, by name or by one of their cities: "Pune, India" is in Maharashtra."""
+    states = taxonomy()["locations"].get("states", {})
+    return {state for state, cities in states.items() if _named(state, text) or any(_named(city, text) for city in cities)}
+
+
+def _named_place_match(location: str, named_targets: list[str], is_remote: bool,
+                       job_countries: set[str]) -> LocationMatch | None:
+    """A city or state the candidate named, found in the listing's location."""
+    job_states = states_of(location)
+    for target in named_targets:
+        city = target.split(",")[0].strip()
+        if city and re.search(rf"\b{re.escape(city)}\b", location, re.IGNORECASE) \
+                and not (is_remote and countries_in(target) - job_countries):
+            return LocationMatch("match", f"Listing location {location} includes {city}")
+        wanted_states = states_named(target) & job_states
+        if wanted_states and not is_remote:
+            return LocationMatch("match", f"Listing location {location} is in {', '.join(sorted(wanted_states))}")
+    if not is_remote and job_states & set().union(set(), *(states_of(target) for target in named_targets)):
+        return LocationMatch("partial", f"Same state, different city: {location}")
+    return None
+
+
 def is_global_location(text: str) -> bool:
     terms = taxonomy()["locations"]["global_terms"]
     return any(re.search(rf"\b{re.escape(term)}\b", text, re.IGNORECASE) for term in terms)
@@ -80,11 +112,9 @@ def match_location(job: dict, targets: list[str]) -> LocationMatch:
     job_countries = countries_in(location)
     is_remote = job.get("remote") is True or bool(_REMOTE_WORD.search(location))
 
-    for target in named_targets:
-        city = target.split(",")[0].strip()
-        if city and re.search(rf"\b{re.escape(city)}\b", location, re.IGNORECASE) \
-                and not (is_remote and countries_in(target) - job_countries):
-            return LocationMatch("match", f"Listing location {location} includes {city}")
+    place_match = _named_place_match(location, named_targets, is_remote, job_countries)
+    if place_match:
+        return place_match
 
     if is_remote:
         restriction = _REMOTE_RESTRICTION.search(job.get("description", ""))

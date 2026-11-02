@@ -18,7 +18,7 @@ from pathlib import Path
 from deduplicate import deduplicate_jobs
 from http_client import FetchError, HttpClient
 from job_discovery import (DuckDuckGoSearch, boards_from_urls, build_search_queries, discover_board_urls)
-from job_storage import JobStore, load_preferences, save_preferences
+from job_storage import JobStore, load_preferences, profile_warning, save_preferences
 from location_matching import candidate_targets, match_location
 from normalize_jobs import enrich_job
 from resume_parser import ResumeParseError, load_profile_from_resume
@@ -120,7 +120,20 @@ def collect_boards(arguments, store: JobStore, profile: dict, sources: list[str]
     return list(unique_boards.values()), warnings
 
 
+NETWORK_CHECK_BOARDS = 3
+NETWORK_HELP = (
+    "Could not reach any job board: the first {count} all failed to connect ({detail}).\n"
+    "This machine or the Claude app's code sandbox is blocking these sites. Either allow network access for code "
+    "(Claude app: Settings > Capabilities), or let Claude read the listings with its own web tool and score each "
+    "with match_job.py --text-file (see the job-search skill, 'When the network is blocked').")
+
+
+class NetworkUnavailable(Exception):
+    pass
+
+
 def fetch_all_jobs(boards: list[JobBoard], client: HttpClient) -> tuple[list[dict], list[JobBoard], list[str]]:
+    """Raises NetworkUnavailable when the first boards all fail to connect: the rest would too."""
     jobs: list[dict] = []
     working_boards: list[JobBoard] = []
     unavailable: list[str] = []
@@ -129,6 +142,8 @@ def fetch_all_jobs(boards: list[JobBoard], client: HttpClient) -> tuple[list[dic
             board_jobs = SOURCES[board.source].fetch_board(board, client)
         except FetchError as error:
             unavailable.append(f"{board.source}/{board.slug}: source unavailable ({error.kind})")
+            if error.kind == "network" and not working_boards and len(unavailable) >= NETWORK_CHECK_BOARDS:
+                raise NetworkUnavailable(str(error)) from error
             continue
         progress(f"  [{position}/{len(boards)}] {SOURCES[board.source].label}/{board.slug}: {len(board_jobs)} listings")
         jobs.extend(board_jobs)
@@ -195,6 +210,8 @@ def run(arguments: argparse.Namespace) -> int:
     preferences = load_preferences()
     sources = choose_sources(arguments, preferences)
     store.save_profile(profile)
+    if profile_warning(profile) and not arguments.extract_only:
+        print(profile_warning(profile), file=sys.stderr)
     target_titles = [role["title"] for role in profile["target_roles"]]
     progress(f"Found {len(target_titles)} relevant target roles: {', '.join(target_titles)}")
     if not target_titles:
@@ -222,7 +239,11 @@ def run(arguments: argparse.Namespace) -> int:
                  "Run this skill through Claude, which searches the web for boards, or add one with --board lever:company.")
         return 1
 
-    jobs, working_boards, unavailable = fetch_all_jobs(boards, client)
+    try:
+        jobs, working_boards, unavailable = fetch_all_jobs(boards, client)
+    except NetworkUnavailable as error:
+        print(NETWORK_HELP.format(count=NETWORK_CHECK_BOARDS, detail=str(error)[:160]), file=sys.stderr)
+        return 1
     store.remember_boards([board for board in working_boards if board.source in ATS_SOURCES])
     for message in unavailable:
         progress(f"Skipped {message}")

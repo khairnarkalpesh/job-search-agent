@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Which missing skills cost you the most, counted over your saved search results.
+"""Which missing skills cost you the most, counted over your saved search results and matched jobs.
 
     python scripts/skill_gaps.py
     python scripts/skill_gaps.py --min-score 50 --top 15
@@ -15,7 +15,7 @@ import json
 import sys
 from pathlib import Path
 
-from job_storage import read_json
+from job_storage import JobStore
 from skill_taxonomy import DATA_DIR
 
 REQUIRED_WEIGHT = 3
@@ -48,9 +48,9 @@ def rank_gaps(jobs: list[dict], min_score: int) -> tuple[list[dict], int]:
 
 def run(arguments) -> int:
     data_dir = Path(arguments.data_dir) if arguments.data_dir else DATA_DIR
-    jobs = read_json(data_dir / "job_results.json", [])
+    jobs = JobStore(data_dir).scored_jobs()
     if not jobs:
-        print("No saved results yet. Run a search first (/job-search).", file=sys.stderr)
+        print("No scored jobs yet. Run a search (/job-search) or score a job you found (/job-match).", file=sys.stderr)
         return 1
     ranking, counted = rank_gaps(jobs, arguments.min_score)
     ranking = ranking[:arguments.top]

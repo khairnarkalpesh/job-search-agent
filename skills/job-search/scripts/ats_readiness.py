@@ -16,6 +16,7 @@ resume shows it in a form a machine can read. The skill comparison itself is sha
 """
 from __future__ import annotations
 
+import collections
 import dataclasses
 import functools
 import re
@@ -28,10 +29,11 @@ from location_matching import candidate_targets, match_location
 from normalize_jobs import responsibility_lines
 from resume_layout import LayoutFindings, ResumeDocument
 from resume_outline import Section, outline, section_lines, sections_named
-from resume_parser import (BULLET, EMAIL, ROLE_WORD, WEB_LINK, build_profile, extract_location, extract_name,
-                           group_experience, has_phone_number, remove_contact_details)
+from resume_parser import (EMAIL, ROLE_WORD, WEB_LINK, build_profile, extract_location, extract_name,
+                           group_experience, has_phone_number, join_wrapped_lines,
+                           remove_contact_details)
 from score_jobs import SKILL_IMPORTANCE, TECHNOLOGY_CATEGORIES, assess_job_skills
-from skill_taxonomy import (SKILL_ROOT, find_skills, seniority_from_title, seniority_from_years, skill_patterns,
+from skill_taxonomy import (SKILL_ROOT, find_skills, seniority_from_title, seniority_from_years, skill_mentions,
                             skill_spec, surface_form)
 
 CATEGORY_MAXIMUMS = {"parsing": 20, "structure": 15, "keywords": 25, "required_skills": 20, "sections": 10,
@@ -43,7 +45,8 @@ LANGUAGE_FILE = SKILL_ROOT / "config" / "resume_language.yaml"
 
 # How much a resume term counts towards a listing term. A parser matching words does not
 # know that Kotlin is close to Java, so related skills earn far less here than in Job Match.
-ON_RESUME_CREDIT = {"exact": 1.0, "reworded": 0.8, "related": 0.3, "transferable": 0.1, "missing": 0.0}
+ON_RESUME_CREDIT = {"exact": 1.0, "reworded": 0.8, "related": 0.3, "transferable": 0.1, "unverified": 0.0,
+                    "missing": 0.0}
 HARD_REQUIREMENT_CREDIT = {"met": 1.0, "unknown": 0.5, "failed": 0.0}
 RESUME_VISIBLE_REQUIREMENTS = {"experience", "degree", "certification", "language"}
 OUTSIDE_BODY_CREDIT = 0.4  # present in the file, but where many parsers do not look
@@ -129,7 +132,10 @@ class ResumeView:
 
 
 def rename_fix(section: Section) -> str:
-    return f'Rename "{section.heading}" to "{(section.suggested or "a standard name").title()}".'
+    if section.suggested:
+        return f'Rename "{section.heading}" to "{section.suggested.title()}".'
+    return (f'Give "{section.heading}" a standard heading, such as Experience, Skills, Projects, Education, '
+            "Certifications or Achievements, or fold its lines into one of those.")
 
 
 # Parsing readiness ---------------------------------------------------------------------
@@ -304,7 +310,7 @@ def starts_weak(line: str) -> bool:
 def work_bullets(view: ResumeView) -> list[str]:
     """Experience bullets, or project lines for an early-career resume."""
     if view.early_career:
-        return [BULLET.sub("", line) for line in section_lines(view.sections, "projects")]
+        return join_wrapped_lines(section_lines(view.sections, "projects"))
     return [line for block in group_experience(section_lines(view.sections, "experience"))[1] for line in block.body]
 
 
@@ -314,9 +320,15 @@ def filler_in(text: str) -> list[str]:
 
 
 def overused_terms(text: str) -> list[dict]:
-    limit = resume_language()["overuse_count"]
-    counts = [(name, len(pattern.findall(text))) for name, pattern in skill_patterns()]
-    return [{"term": name, "count": count} for name, count in counts if count >= limit]
+    """Skills repeated often enough, for the length of the resume, to read as keyword stuffing.
+
+    Whole terms are counted: "Tailwind CSS" is a mention of Tailwind CSS, not of CSS.
+    """
+    language = resume_language()
+    counts = collections.Counter(skill for _, _, skill in skill_mentions(text))
+    words = max(len(text.split()), 1)
+    return [{"term": name, "count": count} for name, count in counts.most_common()
+            if count >= language["overuse_count"] and count / words >= language["overuse_share"]]
 
 
 def assess_sections(view: ResumeView) -> Tally:
@@ -525,6 +537,8 @@ def compare_terms(job: dict, view: ResumeView, evidence_skills: set[str]) -> lis
     listing_text = f"{job['title']}\n{job['description']}"
     terms = []
     for item in assess_job_skills(job, view.resume_skills):
+        if item["importance"] == "alternative":
+            continue  # another option of an either-or list; the best-matched option stands for it
         job_term = surface_form(item["skill"], listing_text) or item["skill"]
         on_resume = item["match"].lower()
         resume_term = item["matched_with"] or ""
@@ -571,8 +585,13 @@ def _add_term_findings(tally: Tally, chosen: list[dict], weight_of) -> None:
     add(supported, f"Your profile shows these, but this resume never names them: {names}",
         f"Name them where you used them: {names}.")
     for term in absent:
-        add([term], f"Not on your resume: {term['skill']} ({term['importance']})",
-            f"Have you used {term['skill']}? If so, say where; it is not added without that.", needs_information=True)
+        if term["on_resume"] == "unverified":
+            add([term], f"{term['skill']} is asked for and not named on your resume ({term['importance']})",
+                f"If you have {term['skill']} (coursework, coding contests, work), name it where it shows; "
+                "otherwise leave it out.", needs_information=True)
+        else:
+            add([term], f"Not on your resume: {term['skill']} ({term['importance']})",
+                f"Have you used {term['skill']}? If so, say where; it is not added without that.", needs_information=True)
 
 
 REQUIRED_SKILL_POINTS = 15
@@ -643,7 +662,9 @@ def assess_resume(document: ResumeDocument, job: dict | None = None, evidence_sk
     tallies = {"parsing": parsing, "structure": structure, "sections": assess_sections(view), "formatting": formatting}
     report: dict = {"mode": "job" if job else "general", "parsing_checks": parsing_checks,
                     "sections_found": sections_found, "formatting_risks": formatting_risks,
-                    "overused_terms": overused_terms(document.text), "keywords": None, "job_requirements": None, "job": None}
+                    "overused_terms": overused_terms(document.text),
+                    "unrecognized_skills": view.profile.get("unrecognized_skills", []),
+                    "keywords": None, "job_requirements": None, "job": None}
     if job:
         terms = compare_terms(job, view, evidence_skills or set())
         location_match = match_location(job, candidate_targets(view.profile, {}))
@@ -738,11 +759,36 @@ def format_ats_report(report: dict) -> str:
     return "\n".join(lines)
 
 
+STRONG_MATCH = 75
+WORTH_A_LOOK = 60
+READS_WELL = 75
+
+
+def verdict(ats_report: dict, scored_job: dict) -> str:
+    """One line on what to do, from the three measures; the numbers below it still stand apart."""
+    match_score, ats_score = scored_job["match_score"], ats_report["ats_score"]
+    fixes = len(ats_report["recommendations"])
+    major = [gap for gap in scored_job.get("gaps", []) if gap.startswith("Major Gap")]
+    if major:
+        return f"Probably skip: {major[0].removeprefix('Major Gap: ')}."
+    if match_score >= STRONG_MATCH and ats_score >= READS_WELL:
+        return "Apply: strong fit, and the resume shows it."
+    if match_score >= STRONG_MATCH:
+        return f"Apply, after fixing the resume: strong fit, but {fixes} fix(es) would help it read (/resume-optimize)."
+    if match_score >= WORTH_A_LOOK:
+        missing = scored_job.get("missing_required_skills") or []
+        return ("Worth applying if you can speak to the gaps: " + ", ".join(missing[:3]) + "." if missing
+                else "Worth applying: a reasonable fit with no required skill missing.")
+    return "Probably skip: a weak fit for your profile."
+
+
 def format_separate_scores(ats_report: dict, scored_job: dict) -> str:
     missing = scored_job.get("missing_required_skills") or []
     gap_line = (f"{len(missing)} required skill(s) missing for this job: {', '.join(missing)}" if missing
                 else "No required skills missing for this job")
     return "\n".join([
+        f"VERDICT: {verdict(ats_report, scored_job)}",
+        "",
         "THREE SEPARATE MEASURES",
         f"  ATS Readiness  {ats_report['ats_score']:>3} / 100   Can this resume be parsed and understood for this job?",
         f"  Job Match      {scored_job['match_score']:>3} / 100   How well do you fit this job? (against your saved profile)",

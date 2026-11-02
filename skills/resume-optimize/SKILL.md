@@ -52,7 +52,9 @@ python scripts/resume_optimize.py verify --resume "<resume>" --optimized ~/.job-
 ```
 
 Exit code 3 means rejected: it lists each added or lost employer, title, date, skill, figure,
-certification or education detail. Fix them all and run it again. Only a passing check counts.
+certification or education detail, and any broken structure: a bullet split mid-sentence, a
+location or heading line turned into a bullet, or a bullet moved under a different job. Fix
+them all and run it again. Only a passing check counts.
 It then prints ATS Readiness before and after.
 
 ## 5. Answer and export

@@ -11,7 +11,9 @@ plan    what to change and why: the ATS report, the facts the rewrite must keep 
 draft   a safe first version: standard headings, skills grouped with the job's first, the
         most relevant bullets and projects first, filler removed. Wording is unchanged.
 verify  rejects a rewrite that adds an employer, title, date, skill, figure, certification
-        or education detail, or loses one; then compares ATS Readiness before and after.
+        or education detail, or loses one, or that breaks the structure (a bullet split in
+        half, a location line turned into a bullet, a bullet moved to another employer);
+        then compares ATS Readiness before and after.
 export  writes a single-column DOCX from the Markdown resume.
 
 Rewording bullets and the summary is Claude's job, following prompts/resume-optimization.md;
@@ -33,7 +35,8 @@ from match_job import add_job_arguments, load_profile, read_job
 from resume_facts import ResumeFacts, dropped_facts, unsupported_claims
 from resume_layout import ResumeDocument, inspect_resume
 from resume_outline import lines_meaning, outline
-from resume_parser import BULLET, SYNTHETIC_MARKER, ResumeParseError, group_experience
+from resume_parser import (BULLET, CORE_SECTIONS, SYNTHETIC_MARKER, ResumeParseError, group_experience,
+                           group_projects, skill_list_items)
 from score_jobs import assess_job_skills, score_job
 from search_jobs import choose_data_dir
 from skill_taxonomy import find_skills, skill_spec, surface_form
@@ -43,12 +46,15 @@ PLAN_FILE = "optimization_plan.json"
 DRAFT_FILE = "optimized_resume.md"
 VERIFIED_EXIT_CODE = 0
 REJECTED_EXIT_CODE = 3
-SECTION_ORDER = ["summary", "skills", "experience", "projects", "education", "certifications", "languages"]
-EARLY_CAREER_ORDER = ["summary", "skills", "projects", "education", "experience", "certifications", "languages"]
+SECTION_ORDER = CORE_SECTIONS
+EARLY_CAREER_ORDER = ["summary", "skills", "projects", "education", "experience", "certifications", "achievements",
+                      "languages"]
 SKILL_GROUP_LABELS = {"programming_languages": "Languages", "frameworks": "Frameworks", "backend": "Backend",
                       "frontend": "Frontend", "databases": "Databases", "cloud": "Cloud", "devops": "DevOps",
                       "ai_ml": "AI/ML", "other": "Other"}
-IMPORTANCE_RANK = {"required": 0, "preferred": 1, "mentioned": 2}
+IMPORTANCE_RANK = {"required": 0, "preferred": 1, "mentioned": 2, "alternative": 2}
+MIN_BULLET_WORDS = 4  # "Bengaluru, Karnataka" or "Remote | IT Services" is a heading line, not a bullet
+SAME_BULLET_OVERLAP = 0.5
 
 
 def parse_arguments(argv=None) -> argparse.Namespace:
@@ -89,6 +95,12 @@ def order_by_relevance(lines: list[str], relevance: dict[str, int]) -> list[str]
     return sorted(lines, key=lambda line: _line_relevance(line, relevance))  # stable: ties keep their order
 
 
+def order_projects(lines: list[str], relevance: dict[str, int]) -> list[list[str]]:
+    """Whole projects, most relevant first; a project's bullets stay with it, in their order."""
+    projects = group_projects(lines)
+    return sorted(projects, key=lambda project: min(_line_relevance(line, relevance) for line in project))
+
+
 # The plan ---------------------------------------------------------------------------
 
 def build_plan(document: ResumeDocument, job: dict | None, profile: dict | None) -> dict:
@@ -113,12 +125,13 @@ def build_plan(document: ResumeDocument, job: dict | None, profile: dict | None)
         "do_not_add": [term["skill"] for term in keyword_terms
                        if term["on_resume"] not in ("exact", "reworded") and not term["supported_elsewhere"]],
         "skills_order": sorted(view.resume_skills, key=lambda skill: (relevance.get(skill, 3), skill.lower())),
-        "projects_order": order_by_relevance([BULLET.sub("", line) for line in lines_meaning(view.sections, "projects")],
-                                             relevance),
+        "projects_order": [project[0] for project in order_projects(lines_meaning(view.sections, "projects"),
+                                                                    relevance)],
         "bullets_to_strengthen": _weak_bullets(bullets),
         "filler_to_remove": filler_in(document.text),
         "headings_to_rename": [{"from": item["heading"], "to": item["suggested"].title()}
-                               for item in report["sections_found"] if not item["standard"] and item["suggested"]],
+                               for item in report["sections_found"] if not item["standard"] and item["suggested"]
+                            and item["suggested"].lower() != item["heading"].lower()],
         "formatting_fixes": [risk["fix"] for risk in report["formatting_risks"]],
         "additional_information_required": _missing_information(report, view),
     }
@@ -165,22 +178,12 @@ def remove_filler(text: str) -> str:
     return text[:1].upper() + text[1:]
 
 
-def _skill_items(lines: list[str]) -> list[str]:
-    items: dict[str, str] = {}  # first spelling of each item, keyed case-insensitively, in order
-    for line in lines:
-        line = re.sub(r"^[^:,]{1,30}:\s*", "", BULLET.sub("", line))  # "Languages: Java, Go" lists Java and Go
-        for item in re.split(r"[,;|•·]", line):
-            if item.strip():
-                items.setdefault(item.strip().lower(), item.strip())
-    return list(items.values())
-
-
 def group_skills(lines: list[str], relevance: dict[str, int], job_wording: dict[str, str]) -> list[str]:
     """Skills grouped by kind, job skills first in each group. Where the listing names a skill
     differently, its wording is added beside the resume's: "REST APIs (RESTful services)".
     Items the taxonomy does not know stay, under Other."""
     groups: dict[str, list[tuple[int, str]]] = {label: [] for label in SKILL_GROUP_LABELS.values()}
-    for item in _skill_items(lines):
+    for item in skill_list_items(lines):
         # "Spring Boot" also matches the Spring alias; the skill named by the longest match is the one meant.
         skill = max(find_skills(item), key=lambda name: len(surface_form(name, item)), default=None)
         if skill is None:
@@ -203,6 +206,13 @@ def _experience_lines(lines: list[str], relevance: dict[str, int]) -> list[str]:
     return rendered
 
 
+def _project_lines(project: list[str]) -> list[str]:
+    """A titled project keeps its title as a plain line; a one-line project is a bullet."""
+    if len(project) == 1:
+        return [f"- {project[0]}"]
+    return ["", project[0], *[f"- {line}" for line in project[1:]]]
+
+
 def build_draft(document: ResumeDocument, job: dict | None) -> str:
     """A reordered, ATS-safe Markdown version of the resume. Every line comes from the original."""
     sections = outline(document.text)
@@ -213,9 +223,10 @@ def build_draft(document: ResumeDocument, job: dict | None) -> str:
                if term["on_resume"] == "reworded"}
     grouped: dict[str, tuple[str, list[str]]] = {}
     for section in sections[1:]:
-        key = section.name or section.suggested or section.heading.lower()
-        title = (section.name or section.suggested or section.heading).title()
-        grouped.setdefault(key, (title, []))[1].extend(section.lines)
+        # Standard sections get the standard heading; others ("Hobbies", "Volunteering") keep their own.
+        standard = next((name for name in (section.name, section.suggested) if name in CORE_SECTIONS), "")
+        key = standard or section.heading.lower()
+        grouped.setdefault(key, (standard.title() or section.heading.title(), []))[1].extend(section.lines)
     early_career = ResumeView.of(document).early_career
     order = EARLY_CAREER_ORDER if early_career else SECTION_ORDER
     keys = [key for key in order if key in grouped] + [key for key in grouped if key not in order]
@@ -230,7 +241,7 @@ def build_draft(document: ResumeDocument, job: dict | None) -> str:
         elif key == "experience":
             body = _experience_lines(lines, relevance)
         elif key == "projects":
-            body = [f"- {line}" for line in order_by_relevance([BULLET.sub("", line) for line in lines], relevance)]
+            body = [line for project in order_projects(lines, relevance) for line in _project_lines(project)]
         else:
             body = list(lines)
         out += ["", f"## {title}", *body]
@@ -239,13 +250,52 @@ def build_draft(document: ResumeDocument, job: dict | None) -> str:
 
 # Verify -----------------------------------------------------------------------------
 
+def _words(line: str) -> set[str]:
+    return set(re.findall(r"\w+", line.lower()))
+
+
+def _employer(block) -> str:
+    return block.company or block.role or block.duration
+
+
+def structure_problems(original: ResumeDocument, rewritten: ResumeDocument) -> list[dict]:
+    """Experience bullets that are no longer whole, or no longer under the job they came from.
+
+    The fact check cannot see these: every word is still true, but the resume is broken.
+    A rewritten bullet is traced to the original bullet sharing most of its words; jobs are
+    matched by their dates, which the fact check already holds fixed.
+    """
+    _, before = group_experience(lines_meaning(outline(original.text), "experience"))
+    _, after = group_experience(lines_meaning(outline(rewritten.text), "experience"))
+    origin = [(_words(bullet), block) for block in before for bullet in block.body]
+    problems = []
+    for block in after:
+        for bullet in block.body:
+            words = _words(bullet)
+            if len(words) < MIN_BULLET_WORDS:
+                problems.append({"kind": "not a bullet", "value": bullet, "reason": f"under {_employer(block)}; "
+                                 "a location or heading line, or a piece of a wrapped line"})
+            elif bullet[:1].islower():
+                problems.append({"kind": "split bullet", "value": bullet,
+                                 "reason": "starts mid-sentence; rejoin it to the bullet it was cut from"})
+            else:
+                overlap, source = max(((len(words & known) / len(words | known), owner) for known, owner in origin),
+                                      key=lambda pair: pair[0], default=(0, None))
+                if source and overlap >= SAME_BULLET_OVERLAP and (source.start, source.end) != (block.start, block.end):
+                    problems.append({"kind": "moved bullet", "value": bullet,
+                                     "reason": f"came from {_employer(source)}, now under {_employer(block)}"})
+    return problems
+
+
 def verify(original: ResumeDocument, rewritten: ResumeDocument, job: dict | None, evidence_skills: set[str]) -> dict:
     original_facts, rewritten_facts = ResumeFacts.of(original.text), ResumeFacts.of(rewritten.text)
     claims = unsupported_claims(original_facts, rewritten_facts, evidence_skills)
     dropped = dropped_facts(original_facts, rewritten_facts)
+    broken = structure_problems(original, rewritten)
     before = assess_resume(original, job, evidence_skills)
     after = assess_resume(rewritten, job, evidence_skills)
-    return {"passed": not claims and not dropped, "unsupported_claims": claims, "dropped_facts": dropped,
+    return {"passed": not claims and not dropped and not broken, "unsupported_claims": claims,
+            "dropped_facts": dropped, "structure_problems": broken,
             "comparison": compare_reports(before, after), "before": before, "after": after}
 
 
@@ -257,9 +307,12 @@ def format_verification(result: dict) -> str:
     if result["dropped_facts"]:
         lines += ["", "REJECTED: the rewrite lost facts from the original", ""]
         lines += [f"  ✗ {item['kind']}: {item['value']} ({item['reason']})" for item in result["dropped_facts"]]
+    if result["structure_problems"]:
+        lines += ["", "REJECTED: the rewrite breaks the resume's structure", ""]
+        lines += [f"  ✗ {item['kind']}: {item['value']} ({item['reason']})" for item in result["structure_problems"]]
     if result["passed"]:
         lines += ["VERIFIED: every employer, title, date, skill, figure, certification and education detail",
-                  "comes from the original resume, and none was lost."]
+                  "comes from the original resume, none was lost, and every bullet is whole and under its job."]
     comparison = result["comparison"]
     overall = comparison["ats_score"]
     lines += ["", "ATS READINESS, BEFORE AND AFTER", "",
@@ -351,7 +404,8 @@ def run_verify(arguments, document, job, profile) -> int:
     rewritten = inspect_resume(arguments.optimized)
     result = verify(document, rewritten, job, candidate_skill_set(profile) if profile else set())
     write_json(_data_dir(arguments, document) / "optimization_check.json",
-               {key: result[key] for key in ("passed", "unsupported_claims", "dropped_facts", "comparison")})
+               {key: result[key] for key in ("passed", "unsupported_claims", "dropped_facts", "structure_problems",
+                                             "comparison")})
     print(json.dumps(result, indent=2, ensure_ascii=False) if arguments.json else format_verification(result))
     return VERIFIED_EXIT_CODE if result["passed"] else REJECTED_EXIT_CODE
 

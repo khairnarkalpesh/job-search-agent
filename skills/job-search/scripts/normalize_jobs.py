@@ -48,7 +48,10 @@ _REQUIRED_HEADING = re.compile(
     r"(requirements?|required|qualifications?|what you('|’)?ll need|what you need|what we('|’)?re looking for|"
     r"what we look for|you have|you bring|you should have|you will have|about you|who you are|must[- ]haves?|"
     r"skills (and|&) experience|experience (and|&) skills|your (background|experience|profile|skills)|what you bring|"
-    r"we('|’)?d love|ideal candidate|minimum)", re.IGNORECASE)
+    r"we('|’)?d love|ideal candidate|minimum|"
+    # Skills headings ("Key Skills", "Technical Skills", "Tech Stack"). A "Nice to have skills"
+    # heading is caught by _PREFERRED_HEADING first.
+    r"\bskills?\b|skill ?set|tech(nology|nical)? stack|eligibility|desired (candidate )?profile)", re.IGNORECASE)
 _PREFERRED_HEADING = re.compile(
     r"(preferred|nice[- ]to[- ]haves?|bonus|good to have|desirable|a plus|plus points|extra credit|"
     r"would be great|it('|’)?s great if|ideally)", re.IGNORECASE)
@@ -159,6 +162,26 @@ def repair_mojibake(text: str) -> str:
     return text
 
 
+_CLOSED_PHRASES = re.compile(
+    r"no longer (?:accepting applications|available|open|active|being accepted)|this (?:job|position|role|posting) "
+    r"(?:has (?:expired|closed|been filled)|is closed)|(?:position|job) has been filled|applications? (?:are|is) "
+    r"(?:now )?closed|job (?:posting )?(?:not found|has expired)", re.IGNORECASE)
+
+
+def closed_listing_reason(text: str, url: str = "") -> str:
+    """Why a fetched listing looks closed, or "" when it looks open.
+
+    Search engines keep closed listings indexed: Greenhouse redirects them to ?error=true, and
+    most boards replace the text with a "no longer accepting applications" notice. Only the
+    first lines are read, so a closed sister role mentioned in the body does not count.
+    """
+    if re.search(r"[?&]error=true\b", url):
+        return "the board redirected it to an error page"
+    head = "\n".join(text.strip().splitlines()[:15])
+    found = _CLOSED_PHRASES.search(head)
+    return f'the page says "{found.group(0)}"' if found else ""
+
+
 def make_job(*, source: str, job_id: str, title: str, company: str, location: str, description: str,
              url: str, application_url: str = "", employment_type: str = "", salary: str = "",
              remote: bool | None = None, workplace_type: str = "", posted_at: str = "",
@@ -184,6 +207,7 @@ def make_job(*, source: str, job_id: str, title: str, company: str, location: st
         "description": description,
         "requirements": [],
         "preferred_qualifications": [],
+        "responsibilities": [],
         "technologies": [],
         "application_url": application_url or url,
         "source": source,
@@ -201,5 +225,6 @@ def enrich_job(job: dict) -> dict:
         "salary": job["salary"] or extract_salary(job["description"]),
         "requirements": requirements,
         "preferred_qualifications": preferred,
+        "responsibilities": responsibility_lines(job["description"]),
         "technologies": find_skills(f"{job['title']}\n{job['description']}"),
     }

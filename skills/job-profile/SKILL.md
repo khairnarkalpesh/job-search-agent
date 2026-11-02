@@ -32,7 +32,15 @@ The shape is in `../job-search/schemas/candidate-profile.schema.json`. In short:
 - Keep out email, phone, street address, ID numbers, date of birth and profile links.
   Location stays at city and country.
 - Every target role needs a `family` from `config/taxonomy.yaml` and a stated reason.
-  No aspirational roles the resume cannot support.
+  No aspirational roles the resume cannot support. The first roles should follow the most
+  recent job title and the summary, not a skill seen once in a college project.
+- `skills_learning` lists skills the resume marks "(learning)", "basic" or "exposure"; they
+  are not counted as skills. Keep it that way unless the resume shows real use elsewhere.
+- `unrecognized_skills` lists Skills-section items the taxonomy does not know, so no job
+  can match them. Mention them to the user; if one matters, it can be added to
+  `config/taxonomy.yaml`.
+- When the profile is right, set `"reviewed": true`. Until then every other skill warns
+  that it is scoring against an unchecked draft.
 
 ## 3. Show the user
 

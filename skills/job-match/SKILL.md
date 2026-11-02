@@ -32,10 +32,15 @@ read. Never fetch or scrape those sites; work only from text the user gives you.
 2. Run:
 
 ```bash
-python scripts/match_job.py --text-file ~/.job-search-agent/data/pasted_job.txt --title "<title>" --company "<company>" --location "<as stated>" --source-name "LinkedIn"
+python scripts/match_job.py --text-file ~/.job-search-agent/data/pasted_job.txt --source-name "LinkedIn"
 ```
 
-Take title, company and location from the text. Leave out what it does not state.
+The title is the first line, and company and location are read from labelled lines
+("Location: Pune") or LinkedIn's "Company · Location" line. Check them in the output; if one
+is wrong or missing and the text states it, pass `--title`, `--company` or `--location`.
+Never fill one in that the text does not state.
+
+Every job scored here is kept in `matched_jobs.json`, so `/job-gaps` counts it too.
 
 If a company careers page loads its jobs with JavaScript, the script finds nothing. You
 may read the page with your own web fetch tool and save the job text, as above.

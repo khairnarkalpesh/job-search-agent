@@ -18,6 +18,7 @@ SOURCE_SEARCH_SITES = {"greenhouse": ["job-boards.greenhouse.io", "boards.greenh
                        "smartrecruiters": ["jobs.smartrecruiters.com"]}
 _MAX_TITLES_IN_PLAN = 6
 _MAX_SKILLS_IN_PLAN = 3
+_MAX_PLACES = 2
 _BLOCK_PAGE_MARKERS = ("anomaly-modal", "anomaly.js", "captcha", "unusual traffic")
 
 
@@ -27,25 +28,27 @@ class SearchBlocked(Exception):
 
 def build_search_queries(profile: dict, sources: list[str], role_filter: str = "", location_filter: str = "",
                          remote_only: bool = False) -> list[dict]:
-    """Queries to run with any web search tool, one per title or skill phrase.
+    """Queries to run with any web search tool, one per title or skill phrase and place.
 
-    Each is {"query", "domains"}: the query names every domain with site: ... OR, and
-    domains is the same list for search tools that take a domain filter instead.
+    Each is {"query", "search_terms", "domains"}. query names every domain with site: ... OR,
+    for search tools without a domain filter; search_terms is the same search without them,
+    for tools that take domains as a filter instead. "Remote,India" is two places, so two
+    searches, not the text "Remote,India".
     """
     titles = [role_filter] if role_filter else [role["title"] for role in profile.get("target_roles", [])[:_MAX_TITLES_IN_PLAN]]
     top_skills = [skill for skill in profile.get("skills", {}).get("programming_languages", [])
                   + profile.get("skills", {}).get("frameworks", [])][:_MAX_SKILLS_IN_PLAN]
-    place = location_filter or ("Remote" if remote_only else _broad_location(profile))
+    place_text = location_filter or ("Remote" if remote_only else _broad_location(profile))
+    places = [place.strip() for place in place_text.split(",") if place.strip()][:_MAX_PLACES] or [""]
 
-    phrases = [f'"{title}"' for title in titles]
-    if titles:
-        phrases += [f'"{skill}" {titles[0]}' for skill in top_skills]
     domains = [domain for source in sources for domain in SOURCE_SEARCH_SITES.get(source, [])]
-    if not domains:
+    if not domains or not titles:
         return []
+    searches = [f'"{title}" {place}'.strip() for place in places for title in titles]
+    searches += [f'"{skill}" {titles[0]} {places[0]}'.strip() for skill in top_skills]  # skill searches, first place only
     sites = " OR ".join(f"site:{domain}" for domain in domains)
     sites = f"({sites})" if len(domains) > 1 else sites
-    return [{"query": " ".join(part for part in (phrase, place, sites) if part), "domains": domains} for phrase in phrases]
+    return [{"query": f"{search} {sites}", "search_terms": search, "domains": domains} for search in searches]
 
 
 def _broad_location(profile: dict) -> str:

@@ -21,6 +21,8 @@
     "matched_skills": {"type": "array", "items": {"type": "object"}},
     "missing_skills": {"type": "array", "items": {"type": "string"}},
     "missing_required_skills": {"type": "array", "items": {"type": "string"}},
+    "unverified_skills": {"type": "array", "items": {"type": "string"}, "description": "Fundamentals the listing asks for and the resume does not name; not counted as missing"},
+    "responsibilities": {"type": "array", "items": {"type": "string"}},
     "hard_requirements": {
       "type": "object",
       "required": ["hard_requirements_met", "hard_requirements_failed", "unknown_requirements"]

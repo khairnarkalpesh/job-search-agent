@@ -9,7 +9,8 @@ description: >-
 
 # job-gaps
 
-Run from `../job-search` (the folder beside this one) after at least one `/job-search`.
+Run from `../job-search` (the folder beside this one) after at least one `/job-search` or a
+few `/job-match` runs: jobs scored either way are counted.
 
 ```bash
 python scripts/skill_gaps.py [--min-score 40] [--top 10]

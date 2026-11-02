@@ -13,7 +13,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from location_matching import countries_in
-from skill_taxonomy import SKILL_CATEGORIES, find_skills, seniority_from_title, seniority_from_years, skill_spec
+from skill_taxonomy import (SKILL_CATEGORIES, find_skills, seniority_from_title, seniority_from_years, skill_mentions,
+                            skill_spec)
 from target_roles import generate_target_roles
 
 SYNTHETIC_MARKER = "SYNTHETIC TEST RESUME"
@@ -27,7 +28,17 @@ SECTION_HEADINGS = {
     "certifications": ["certifications", "certificates", "licenses & certifications", "certifications & licenses"],
     "projects": ["projects", "personal projects", "key projects", "selected projects", "open source"],
     "languages": ["languages", "spoken languages"],
+    "achievements": ["achievements", "key achievements", "awards", "honors", "honours", "honors & awards",
+                     "honours & awards", "awards & achievements", "achievements & awards", "awards and achievements",
+                     "accomplishments", "recognition"],
+    # Not used in the profile, but recognised so their lines do not run into the section above.
+    "activities": ["activities", "extracurricular activities", "extra-curricular activities", "co-curricular activities",
+                   "leadership", "positions of responsibility", "volunteering", "volunteer experience", "hobbies",
+                   "interests", "hobbies & interests", "publications", "references", "declaration", "personal details",
+                   "strengths"],
 }
+# The sections a resume is expected to have, in their usual order. Others keep their own heading.
+CORE_SECTIONS = ["summary", "skills", "experience", "projects", "education", "certifications", "achievements", "languages"]
 HEADING_TO_SECTION = {heading: section for section, headings in SECTION_HEADINGS.items() for heading in headings}
 
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
@@ -199,10 +210,60 @@ def group_experience(lines: list[str]) -> tuple[list[str], list[ExperienceBlock]
             blocks.append(_start_block(line, date_range, previous_plain_line, current_body))
             previous_plain_line = ""
             continue
-        cleaned = BULLET.sub("", line)
-        current_body.append(cleaned)
-        previous_plain_line = "" if BULLET.match(line) else cleaned
-    return preamble, blocks
+        current_body.append(line)  # kept as written until the end, so wrapped bullets can be rejoined
+        previous_plain_line = "" if BULLET.match(line) else line
+    for block in blocks:
+        first_bullet = next((index for index, line in enumerate(block.body) if BULLET.match(line)), 0)
+        # "Remote | IT Services" or "Bengaluru, Karnataka" under the dated line belongs to the heading
+        block.heading_lines += block.body[:first_bullet]
+        block.body = join_wrapped_lines(block.body[first_bullet:])
+    return join_wrapped_lines(preamble), blocks
+
+
+def group_projects(lines: list[str]) -> list[list[str]]:
+    """Projects as written, each its title lines then its bullets (rejoined, markers removed).
+
+    A plain line after a bullet starts the next project. Without any bullets, every line is
+    its own item, as join_wrapped_lines leaves it.
+    """
+    if not any(BULLET.match(line) for line in lines):
+        return [[line.strip()] for line in lines]
+    projects: list[tuple[list[str], list[str]]] = []
+    for line in lines:
+        bullets = projects[-1][1] if projects else []
+        if BULLET.match(line) and projects or bullets and _continues(bullets[-1], line):
+            bullets.append(line)
+        elif projects and not bullets:
+            projects[-1][0].append(line.strip())  # a second title line: stack, link or dates
+        else:
+            projects.append(([line.strip()], []))
+    return [titles + join_wrapped_lines(bullets) for titles, bullets in projects]
+
+
+_OPEN_ENDINGS = (",", "-", "–", "&", " and", " or", " with", " to", " of", " for", " in", " the", " a")
+
+
+def _continues(bullet: str, line: str) -> bool:
+    """A plain line after a bullet is that bullet wrapped when it starts mid-sentence."""
+    return line.strip()[:1].islower() or bullet.rstrip().endswith(_OPEN_ENDINGS)
+
+
+def join_wrapped_lines(lines: list[str]) -> list[str]:
+    """Bullets with their markers removed, each rejoined from the lines it was wrapped over.
+
+    A PDF or a narrow column breaks one bullet over several lines; a line that does not start
+    with a bullet marker continues the bullet above it. Text with no bullets at all is left
+    line by line.
+    """
+    if not any(BULLET.match(line) for line in lines):
+        return [line.strip() for line in lines]
+    items: list[str] = []
+    for line in lines:
+        if BULLET.match(line) or not items:
+            items.append(BULLET.sub("", line).strip())
+        else:
+            items[-1] = f"{items[-1]} {line.strip()}"
+    return items
 
 
 def _start_block(line: str, date_range: re.Match, previous_plain_line: str, previous_body: list[str]) -> ExperienceBlock:
@@ -251,7 +312,50 @@ def parse_experience(lines: list[str], reference_date: dt.date) -> tuple[list[di
 
 
 def _clean_list(lines: list[str]) -> list[str]:
-    return [BULLET.sub("", line) for line in lines]
+    return join_wrapped_lines(lines)
+
+
+def skill_list_items(lines: list[str]) -> list[str]:
+    """The items of a Skills section: "Languages: Java, Go" lists Java and Go. First spelling kept."""
+    items: dict[str, str] = {}
+    for line in lines:
+        line = re.sub(r"^[^:,]{1,30}:\s*", "", BULLET.sub("", line))
+        for item in re.split(r"[,;|•·]", line):
+            if item.strip():
+                items.setdefault(item.strip().lower(), item.strip())
+    return list(items.values())
+
+
+# A skill only ever written this way is something the candidate is still learning.
+_QUALIFIER = re.compile(r"\b(learning|currently learning|basics?|beginner|familiar(ity)?|exposure|elementary|"
+                        r"introductory|novice|in progress|self[- ]taught basics)\b", re.IGNORECASE)
+_ITEM_BOUNDARY = re.compile(r"[,;|•·\n]")
+
+
+def qualified_skills(text: str) -> dict[str, str]:
+    """Skills every mention of which carries a qualifier: "Java (learning)", "basic exposure to Kubernetes".
+
+    Returns each such skill with the words that qualified it. A skill also mentioned plainly
+    elsewhere ("Built Java services") is not qualified. Skill names are blanked out before the
+    check, so "Machine Learning" is not read as "learning".
+    """
+    mentions = skill_mentions(text)
+    blanked = list(text)
+    for start, end, _ in mentions:
+        blanked[start:end] = " " * (end - start)
+    plain_text = "".join(blanked)
+    qualified: dict[str, str] = {}
+    plain: set[str] = set()
+    for start, end, skill in mentions:
+        left = max((match.end() for match in _ITEM_BOUNDARY.finditer(text, 0, start)), default=0)
+        right_match = _ITEM_BOUNDARY.search(text, end)
+        right = right_match.start() if right_match else len(text)
+        qualifier = _QUALIFIER.search(plain_text[left:right])
+        if qualifier:
+            qualified.setdefault(skill, text[left:right].strip())
+        else:
+            plain.add(skill)
+    return {skill: item for skill, item in qualified.items() if skill not in plain}
 
 
 def build_profile(text: str, reference_date: dt.date | None = None) -> dict:
@@ -263,12 +367,21 @@ def build_profile(text: str, reference_date: dt.date | None = None) -> dict:
 
     skills_section_text = "\n".join(sections.get("skills", []))
     listed_skills = set(find_skills(skills_section_text))
+    learning = qualified_skills(cleaned_text)
     skills_by_category: dict[str, list[str]] = {category: [] for category in SKILL_CATEGORIES}
     for skill in find_skills(cleaned_text):
+        if skill in learning:
+            evidence.append({"item": skill, "type": "explicit", "confidence": "low",
+                             "evidence": f"Marked as still learning, not counted as a skill: \"{learning[skill]}\""})
+            continue
         skills_by_category[skill_spec(skill).get("cat", "other")].append(skill)
         source = "Explicitly listed in Skills section" if skill in listed_skills else "Mentioned in resume text"
         evidence.append({"item": skill, "type": "explicit", "evidence": source,
                          "confidence": "high" if skill in listed_skills else "medium"})
+    skill_sources = {skill: [name for name, lines in sections.items() if skill in find_skills("\n".join(lines))]
+                     for skills in skills_by_category.values() for skill in skills}
+    unrecognized = [item for item in skill_list_items(sections.get("skills", []))
+                    if not find_skills(item) and len(item.split()) <= 4 and not _QUALIFIER.fullmatch(item)]
 
     experience, computed_years = parse_experience(sections.get("experience", []), reference_date)
     stated_years = _YEARS_STATED.search("\n".join(sections.get("summary", []) + sections.get("header", [])))
@@ -292,6 +405,7 @@ def build_profile(text: str, reference_date: dt.date | None = None) -> dict:
 
     profile = {
         "synthetic": is_synthetic,
+        "reviewed": False,  # set to true once /job-profile has checked the draft against the resume
         "candidate": {
             "name": extract_name(sections["header"]),
             "location": extract_location(sections["header"]),
@@ -300,6 +414,9 @@ def build_profile(text: str, reference_date: dt.date | None = None) -> dict:
             "seniority": seniority,
         },
         "skills": skills_by_category,
+        "skill_sources": skill_sources,  # which sections show each skill; projects-only skills count less
+        "skills_learning": sorted(learning),
+        "unrecognized_skills": unrecognized,  # listed, but not in config/taxonomy.yaml, so never matched
         "experience": experience,
         "education": _clean_list(sections.get("education", [])),
         "certifications": _clean_list(sections.get("certifications", [])),
@@ -310,7 +427,7 @@ def build_profile(text: str, reference_date: dt.date | None = None) -> dict:
         "remote_preference": None,
         "evidence": evidence,
     }
-    profile["target_roles"] = generate_target_roles(profile)
+    profile["target_roles"] = generate_target_roles(profile, summary=" ".join(sections.get("summary", [])))
     for target_role in profile["target_roles"]:
         evidence.append({"item": target_role["title"], "type": "inferred", "evidence": target_role["reason"],
                          "confidence": target_role["confidence"]})

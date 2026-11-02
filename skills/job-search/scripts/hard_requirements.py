@@ -8,17 +8,21 @@ from __future__ import annotations
 import re
 
 from location_matching import LocationMatch, countries_in
-from skill_taxonomy import classify_skill, find_skills
+from skill_taxonomy import alternative_groups, classify_skill, find_skills, taxonomy
 
 MAJOR = "major"
 MINOR = "minor"
 _MAJOR_YEARS_GAP = 3
 # Fundamentals a resume rarely names. Their absence is not evidence of a gap.
-_FOUNDATION_SKILLS = {"OOP", "System Design", "Data Structures", "Agile", "Testing", "Git"}
+_FOUNDATION_SKILLS = {name for name, spec in taxonomy()["skills"].items() if spec.get("foundation")}
 
 _YEARS_OF_EXPERIENCE = re.compile(
     r"(\d{1,2})\s*(?:\+|plus)?\s*(?:(?:-|–|—|to)\s*(\d{1,2})\s*\+?\s*)?(?:years?|yrs?)\b", re.IGNORECASE)
-_EXPERIENCE_CONTEXT = re.compile(r"experience|background|track record|working|building|developing|professional", re.IGNORECASE)
+_EXPERIENCE_CONTEXT = re.compile(
+    r"experience|background|track record|working|building|developing|development|engineering|professional|"
+    r"hands[- ]on|industry|relevant|minimum|at least|min\.", re.IGNORECASE)
+# "Up to 4 years" and "less than 3 years" set a ceiling, not a minimum.
+_UPPER_BOUND_ONLY = re.compile(r"(?:up\s*to|upto|maximum(?: of)?|max\.?|less than|under|no more than)\s*$", re.IGNORECASE)
 _NOT_JOB_EXPERIENCE = re.compile(r"\b(years old|founded|years ago|for over \d+ years|in the (last|past) \d+ years|year[- ]old)\b", re.IGNORECASE)
 
 _DEGREE_LEVELS = [(3, re.compile(r"\b(ph\.?\s?d|doctorate|doctoral)\b", re.IGNORECASE)),
@@ -33,7 +37,6 @@ CERTIFICATION = re.compile(
 
 _STRICT_WORDS = re.compile(r"\b(must|required|mandatory|essential|non-negotiable)\b", re.IGNORECASE)
 _EMPHASIS_WORDS = re.compile(r"\b(strong|expert|expertise|deep|extensive|proficien\w+|solid)\b", re.IGNORECASE)
-_ALTERNATIVES = re.compile(r"\bor\b|such as|e\.g\.|for example|like|similar|equivalent|/", re.IGNORECASE)
 
 _WORK_AUTHORIZATION = re.compile(
     r"(authori[sz]ed to work|work authori[sz]ation|right to work|work permit|visa sponsorship|unable to sponsor|"
@@ -61,17 +64,33 @@ def _core_lines(job: dict) -> list[str]:
 
 
 def required_years(job: dict) -> tuple[int, int | None, str] | None:
-    """Return (minimum, maximum, source line) of the strictest experience requirement."""
+    """Return (minimum, maximum, source line) of the strictest experience requirement.
+
+    Handles "5+ years", "3-6 years", "2 to 4 years", "minimum 5 years", "at least 3 years"
+    and "up to 4 years". An upper bound alone gives a minimum of 0: "up to 4 years" is (0, 4).
+    """
     best = None
+    ceiling = None
     for line in _core_lines(job):
         if _NOT_JOB_EXPERIENCE.search(line) or not _EXPERIENCE_CONTEXT.search(line):
             continue
         for match in _YEARS_OF_EXPERIENCE.finditer(line):
-            minimum = int(match.group(1))
-            maximum = int(match.group(2)) if match.group(2) else None
-            if 1 <= minimum <= 25 and (best is None or minimum > best[0]):
-                best = (minimum, maximum, line)
-    return best
+            first = int(match.group(1))
+            second = int(match.group(2)) if match.group(2) else None
+            if not 1 <= first <= 25:
+                continue
+            if second is None and _UPPER_BOUND_ONLY.search(line[:match.start()]):
+                ceiling = ceiling or (0, first, line)
+            elif best is None or first > best[0]:
+                best = (first, second, line)
+    return best or ceiling
+
+
+def describe_years(requirement: tuple[int, int | None, str]) -> str:
+    minimum, maximum, _ = requirement
+    if not minimum:
+        return f"up to {maximum} years"
+    return f"{minimum}-{maximum} years" if maximum else f"{minimum}+ years"
 
 
 def _check_experience(job, profile, result) -> None:
@@ -83,7 +102,7 @@ def _check_experience(job, profile, result) -> None:
     if years is None:
         result["unknown"].append(_requirement("experience", line, "Resume does not establish total years of experience"))
     elif years >= minimum:
-        result["met"].append(_requirement("experience", line, f"You have {years:g} years; {minimum}+ asked"))
+        result["met"].append(_requirement("experience", line, f"You have {years:g} years; {describe_years(requirement)} asked"))
     else:
         is_major = minimum - years >= _MAJOR_YEARS_GAP
         label = "Major Gap: Required experience is significantly above your experience" if is_major else "Slightly under the experience asked for"
@@ -130,30 +149,59 @@ def _check_certifications(job, profile, result) -> None:
                 result["unknown"].append(_requirement("certification", line, f"{name} mentioned; not on your resume"))
 
 
+_VERDICT_RANK = {"EXACT": 0, "RELATED": 1, "TRANSFERABLE": 2, "MISSING": 3}
+
+
+def requirement_units(line: str) -> list[list[str]]:
+    """The skills a requirement line asks for, as units that are each needed once.
+
+    "Java and Spring Boot" is two units; "Node.js, Python or PHP" is one unit of three
+    options, and so is "a framework such as React, Vue or Angular".
+    """
+    skills = [skill for skill in find_skills(line) if skill not in _FOUNDATION_SKILLS]
+    groups = [[skill for skill in group if skill in skills] for group in alternative_groups(line)]
+    example = _EXAMPLES.search(line)
+    if example:
+        groups.append([skill for skill in find_skills(line[example.end():]) if skill in skills])
+    units = [group for group in groups if len(group) > 1]
+    grouped = {skill for unit in units for skill in unit}
+    return units + [[skill] for skill in skills if skill not in grouped]
+
+
+_EXAMPLES = re.compile(r"\b(such as|e\.g\.|for example|for instance|including)\b", re.IGNORECASE)
+
+
 def _check_mandatory_technologies(job, candidate_skills, result) -> None:
+    """A technology a line insists on ("must", "strong") and the resume lacks is a hard gap.
+
+    Only an exact match is reported as "you have it". A related skill on a strict line is
+    left unconfirmed, because Vue.js is not Next.js however close they are.
+    """
     seen: set[str] = set()
     for line in job.get("requirements", []):
         is_strict = bool(_STRICT_WORDS.search(line))
         if not is_strict and not _EMPHASIS_WORDS.search(line):
             continue
-        line_skills = [skill for skill in find_skills(line) if skill not in seen and skill not in _FOUNDATION_SKILLS]
-        if not line_skills:
-            continue
-        verdicts = {skill: classify_skill(skill, candidate_skills)[0] for skill in line_skills}
-        missing = [skill for skill, verdict in verdicts.items() if verdict == "MISSING"]
-        severity = MAJOR if is_strict else MINOR
-        if len(line_skills) > 1 and _ALTERNATIVES.search(line):
-            seen.update(line_skills)
-            if len(missing) == len(line_skills):
-                result["failed"].append(_requirement("technology", line, f"Needs one of: {', '.join(missing)}", severity))
-            else:
-                result["met"].append(_requirement("technology", line, "You have at least one of the options listed"))
-            continue
-        seen.update(line_skills)
-        for skill in missing:
-            result["failed"].append(_requirement("technology", line, f"Required technology not on resume: {skill}", severity))
-        if len(missing) < len(line_skills):
-            result["met"].append(_requirement("technology", line, f"You have {', '.join(s for s in line_skills if s not in missing)}"))
+        for unit in requirement_units(line):
+            if not seen.intersection(unit):
+                seen.update(unit)
+                _judge_unit(unit, line, is_strict, candidate_skills, result)
+
+
+def _judge_unit(unit: list[str], line: str, is_strict: bool, candidate_skills: set[str], result) -> None:
+    verdicts = {skill: classify_skill(skill, candidate_skills) for skill in unit}
+    best = min(unit, key=lambda skill: _VERDICT_RANK[verdicts[skill][0]])
+    verdict, held = verdicts[best]
+    asked = best if len(unit) == 1 else "one of " + ", ".join(unit)
+    if verdict == "EXACT":
+        result["met"].append(_requirement("technology", line, f"You have {best}"
+                                          + (f" ({asked} asked)" if len(unit) > 1 else "")))
+    elif verdict == "MISSING":
+        detail = f"Needs {asked}" if len(unit) > 1 else f"Required technology not on resume: {best}"
+        result["failed"].append(_requirement("technology", line, detail, MAJOR if is_strict else MINOR))
+    else:
+        detail = f"{asked} asked; you have {held}, which is {verdict.lower()}, not the same"
+        result["unknown" if is_strict else "met"].append(_requirement("technology", line, detail))
 
 
 def _check_work_authorization(job, preferences, result) -> None:

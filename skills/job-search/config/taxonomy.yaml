@@ -50,18 +50,26 @@ skills:
   REST APIs: {cat: backend, cs: true, aliases: [REST, RESTful, REST API, REST APIs, Rest API, Rest APIs, RESTful APIs], group: api_style}
   GraphQL: {cat: backend, group: api_style}
   gRPC: {cat: backend, aliases: [gRPC, GRPC], group: api_style}
-  System Design: {cat: backend, aliases: [System design, Systems design, Scalable systems]}
-  OOP: {cat: backend, cs: true, aliases: [OOP, OOPS, Object-oriented, Object oriented]}
-  Data Structures: {cat: backend, aliases: [Data structures, Algorithms]}
+  System Design: {cat: backend, foundation: true, aliases: [System design, Systems design, Scalable systems]}
+  OOP: {cat: backend, cs: true, foundation: true, aliases: [OOP, OOPS, Object-oriented, Object oriented]}
+  Data Structures: {cat: backend, foundation: true, aliases: [Data structures, Algorithms, DSA, Competitive programming]}
 
   # Frontend
   React: {cat: frontend, group: spa_framework, aliases: [React, React.js, ReactJS], cs: true, related: [Next.js, Redux, JavaScript]}
   Next.js: {cat: frontend, group: spa_framework, aliases: [Next.js, NextJS], related: [React]}
-  Redux: {cat: frontend, related: [React]}
+  Redux: {cat: frontend, group: state_management, aliases: [Redux, Redux Toolkit, RTK Query], related: [React]}
   Angular: {cat: frontend, group: spa_framework, aliases: [Angular, AngularJS]}
   Vue.js: {cat: frontend, group: spa_framework, aliases: [Vue, Vue.js, VueJS]}
   HTML: {cat: frontend, cs: true, aliases: [HTML, HTML5]}
-  CSS: {cat: frontend, cs: true, aliases: [CSS, CSS3, Sass, SCSS, Tailwind]}
+  CSS: {cat: frontend, cs: true, aliases: [CSS, CSS3, Sass, SCSS, CSS Modules, Styled Components, styled-components]}
+  Tailwind CSS: {cat: frontend, aliases: [Tailwind CSS, Tailwind, TailwindCSS], related: [CSS]}
+  Zustand: {cat: frontend, group: state_management, related: [Redux, React]}
+  TanStack Query: {cat: frontend, aliases: [TanStack Query, React Query, TanStack], related: [React]}
+  Vite: {cat: frontend, group: build_tool, related: [Webpack]}
+  Webpack: {cat: frontend, group: build_tool, related: [Vite]}
+  Zod: {cat: frontend, related: [TypeScript]}
+  Storybook: {cat: frontend, related: [React]}
+  Material UI: {cat: frontend, aliases: [Material UI, Material-UI, MUI], related: [React]}
 
   # Mobile
   Android: {cat: other, cs: true, group: mobile_platform, related: [Kotlin]}
@@ -94,7 +102,7 @@ skills:
   Terraform: {cat: devops, group: iac, aliases: [Terraform, Infrastructure as code, IaC]}
   Ansible: {cat: devops, group: iac}
   CI/CD: {cat: devops, aliases: [CI/CD, CICD, Continuous integration, Continuous delivery, Jenkins, GitHub Actions, GitLab CI, CircleCI]}
-  Git: {cat: devops, cs: true, aliases: [Git, GitHub, GitLab, Bitbucket]}
+  Git: {cat: devops, cs: true, foundation: true, aliases: [Git, GitHub, GitLab, Bitbucket]}
   Linux: {cat: devops, aliases: [Linux, Unix]}
   Prometheus: {cat: devops, group: observability, aliases: [Prometheus, Grafana]}
   Datadog: {cat: devops, group: observability, aliases: [Datadog, New Relic, Splunk]}
@@ -115,8 +123,8 @@ skills:
   LLMs: {cat: ai_ml, aliases: [LLM, LLMs, Large language models, RAG, Generative AI, GenAI, LangChain]}
 
   # Practice
-  Agile: {cat: other, aliases: [Agile, Scrum, Kanban]}
-  Testing: {cat: other, aliases: [Unit testing, Integration testing, JUnit, Mockito, TDD, Test-driven, pytest, Jest, Selenium, Cypress]}
+  Agile: {cat: other, foundation: true, aliases: [Agile, Scrum, Kanban]}
+  Testing: {cat: other, foundation: true, aliases: [Unit testing, Integration testing, JUnit, Mockito, TDD, Test-driven, pytest, Jest, Vitest, Selenium, Cypress, Playwright, React Testing Library]}
 
 # Role families. `signals` decide how well a resume fits a family; `titles` are
 # the realistic job titles to target; `title_patterns` classify job postings.
@@ -165,7 +173,7 @@ role_families:
     titles: [Full Stack Engineer, Full Stack Developer]
     title_patterns: ['\b(full[- ]?stack)\b']
   frontend:
-    signals: [React, Next.js, Angular, Vue.js, TypeScript, JavaScript, HTML, CSS, Redux]
+    signals: [React, Next.js, Angular, Vue.js, TypeScript, JavaScript, HTML, CSS, Redux, Tailwind CSS, Zustand, TanStack Query, Vite]
     titles: [Frontend Engineer, Frontend Developer, UI Engineer, React Developer]
     title_patterns: ['\b(front[- ]?end|ui engineer|ui developer|web developer|react developer|react engineer)\b']
   backend:
@@ -206,7 +214,7 @@ language_titles:
 
 locations:
   countries:
-    india: [India, Bangalore, Bengaluru, Hyderabad, Pune, Mumbai, Delhi, New Delhi, NCR, Gurgaon, Gurugram, Noida, Chennai, Kolkata, Ahmedabad, Kochi, Jaipur, Coimbatore, Indore]
+    india: [India, Bangalore, Bengaluru, Hyderabad, Pune, Mumbai, Navi Mumbai, Thane, Nagpur, Nashik, Delhi, New Delhi, NCR, Gurgaon, Gurugram, Noida, Chennai, Kolkata, Ahmedabad, Vadodara, Surat, Kochi, Thiruvananthapuram, Trivandrum, Jaipur, Coimbatore, Indore, Bhopal, Lucknow, Chandigarh, Mohali, Bhubaneswar, Visakhapatnam, Mysore, Mysuru, Mangalore, Maharashtra, Karnataka, Telangana, Tamil Nadu, Kerala, Gujarat, West Bengal, Rajasthan, Haryana, Uttar Pradesh, Madhya Pradesh, Odisha, Andhra Pradesh, Punjab]
     united_states: [United States, USA, U.S., US, America, San Francisco, SF, New York, NYC, Seattle, Austin, Boston, Chicago, Denver, Los Angeles, Atlanta, Washington DC, Palo Alto, Mountain View, Sunnyvale, San Jose, San Diego, Portland, Philadelphia, Dallas, Miami, Salt Lake City, Pittsburgh, Raleigh, Remote-US, ", CA", ", NY", ", WA", ", TX", ", MA", ", IL", ", CO", ", GA", ", NC", ", VA", ", PA", ", FL", ", UT", ", OR", ", AZ", ", MN", ", NJ", ", OH", ", MI"]
     canada: [Canada, Toronto, Vancouver, Montreal, Ottawa, Calgary, Waterloo]
     united_kingdom: [United Kingdom, UK, U.K., England, Scotland, London, Manchester, Edinburgh, Cambridge, Bristol]
@@ -277,3 +285,20 @@ locations:
     north america: [united_states, canada, mexico]
     oceania: [australia, new_zealand]
   global_terms: [Global, Worldwide, Anywhere, Work from anywhere]
+  # A state, then its main cities. A profile or filter naming the state matches every city in it.
+  states:
+    Maharashtra: [Pune, Mumbai, Navi Mumbai, Thane, Nagpur, Nashik, Aurangabad, Kolhapur]
+    Karnataka: [Bangalore, Bengaluru, Mysore, Mysuru, Mangalore, Hubli]
+    Telangana: [Hyderabad, Secunderabad, Warangal]
+    Tamil Nadu: [Chennai, Coimbatore, Madurai]
+    Kerala: [Kochi, Thiruvananthapuram, Trivandrum, Kozhikode]
+    Gujarat: [Ahmedabad, Surat, Vadodara, Gandhinagar]
+    West Bengal: [Kolkata]
+    Rajasthan: [Jaipur, Udaipur]
+    Haryana: [Gurgaon, Gurugram, Faridabad]
+    Uttar Pradesh: [Noida, Greater Noida, Lucknow, Ghaziabad]
+    Delhi: [New Delhi, NCR]
+    Madhya Pradesh: [Indore, Bhopal]
+    Odisha: [Bhubaneswar]
+    Andhra Pradesh: [Visakhapatnam, Vijayawada]
+    Punjab: [Mohali]

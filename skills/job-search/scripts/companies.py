@@ -52,6 +52,16 @@ def describe(board: JobBoard) -> str:
     return f"{SOURCES[board.source].label:<16} {board.source}:{board.slug}" if board.source in SOURCES else board.key()
 
 
+def failure_advice(error: FetchError, board: JobBoard) -> str:
+    """A blocked network is not a wrong board name, so the advice differs."""
+    if error.kind in ("network", "blocked"):
+        return ("The site could not be reached, so the board name was not checked. "
+                "To save it now and let the next search check it, add it again with --no-check.")
+    if board.source == "generic":
+        return "This page has no machine-readable listings; use /job-match on single jobs instead."
+    return "No board by that name was found. Check the company's board name."
+
+
 def add(targets: list[str], store: JobStore, client, check: bool) -> int:
     failures = 0
     for target in targets:
@@ -67,9 +77,7 @@ def add(targets: list[str], store: JobStore, client, check: bool) -> int:
                 store.add_boards([found])
                 print(f"✓ {describe(found)}" + (f"  ({count} open listings)" if count is not None else ""))
         except FetchError as error:
-            print(f"✗ {target}: {error.kind}. "
-                  + ("This page has no machine-readable listings; use /job-match on single jobs instead."
-                     if board.source == "generic" else "Check the company's board name."))
+            print(f"✗ {target}: {error.kind}. {failure_advice(error, board)}")
             failures += 1
     return 1 if failures == len(targets) else 0
 

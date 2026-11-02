@@ -19,6 +19,7 @@ _SECTION_HINTS = [
     ("projects", r"project|portfolio|built|open source"),
     ("certifications", r"certif|licen|course|training|credential"),
     ("summary", r"summary|about|profile|objective|introduc|who i am"),
+    ("achievements", r"award|honou?r|achiev|accomplish|recogni"),
     ("languages", r"language"),
 ]
 _NAME_BLOCK_LINES = 2  # the name and a title line, even in capitals

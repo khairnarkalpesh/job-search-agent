@@ -15,6 +15,18 @@ SEEN_NEW = "NEW JOB"
 SEEN_BEFORE = "PREVIOUSLY SEEN"
 
 
+UNREVIEWED_PROFILE = ("Warning: your profile is an unreviewed draft read by rules alone. Its skills and target roles "
+                      "may be wrong, and so may every score. Review it first (/job-profile).")
+
+
+def profile_warning(profile: dict) -> str:
+    """A warning for a draft profile nobody has checked; empty once it is reviewed.
+
+    Profiles saved before the flag existed carry no "reviewed" key and are not warned about.
+    """
+    return UNREVIEWED_PROFILE if profile.get("reviewed") is False else ""
+
+
 def read_json(path: Path, default):
     if not path.exists() or not path.read_text(encoding="utf-8").strip():
         return default
@@ -45,6 +57,20 @@ class JobStore:
         self.results_path = data_dir / "job_results.json"
         self.history_path = data_dir / "search_history.json"
         self.boards_path = data_dir / "known_boards.json"
+        self.matches_path = data_dir / "matched_jobs.json"
+
+    def record_match(self, scored_job: dict) -> None:
+        """Keep a job scored on its own with /job-match, so /job-gaps can count it too."""
+        matches = {job["job_id"]: job for job in read_json(self.matches_path, [])}
+        matches[scored_job["job_id"]] = {**scored_job, "date_matched": today()}
+        write_json(self.matches_path, list(matches.values()))
+
+    def scored_jobs(self) -> list[dict]:
+        """Search results and individually matched jobs, each job once (the latest scoring wins)."""
+        jobs: dict[str, dict] = {}
+        for position, job in enumerate(read_json(self.results_path, []) + read_json(self.matches_path, [])):
+            jobs[job.get("job_id") or f"unidentified:{position}"] = job
+        return list(jobs.values())
 
     def load_profile(self) -> dict | None:
         return read_json(self.profile_path, None) or None

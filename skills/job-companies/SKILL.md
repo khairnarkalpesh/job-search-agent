@@ -30,6 +30,12 @@ Find each company's careers page with web search (query: `<company> careers`), t
 the page URL or a job URL to `add`. Do not guess a board name: a wrong slug can match a
 different company. Report any company you could not place.
 
+## When the site could not be reached
+
+`add` says so and does not blame the board name, because the name was never checked. If
+the user is sure of the board (it came from a real job URL), offer to save it with
+`--no-check`; the next `/job-search` checks it. Never use `--no-check` on a guessed slug.
+
 ## When a careers page has nothing machine-readable
 
 `add` says so. The site loads jobs with JavaScript or uses a system without a public feed

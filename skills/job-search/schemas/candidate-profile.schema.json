@@ -5,6 +5,10 @@
   "required": ["candidate", "skills", "experience", "education", "certifications", "projects", "target_roles", "preferred_locations", "remote_preference", "evidence"],
   "properties": {
     "synthetic": {"type": "boolean", "description": "True when built from a labelled synthetic test resume."},
+    "reviewed": {"type": "boolean", "description": "False for a rule-based draft; set to true once /job-profile has checked it against the resume."},
+    "skill_sources": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}, "description": "The resume sections each skill appears in. Skills seen only in projects weigh less for target roles."},
+    "skills_learning": {"type": "array", "items": {"type": "string"}, "description": "Skills the resume marks as learning or basic. Not counted as skills."},
+    "unrecognized_skills": {"type": "array", "items": {"type": "string"}, "description": "Skills-section items config/taxonomy.yaml does not know, so never matched."},
     "candidate": {
       "type": "object",
       "required": ["name", "location", "years_of_experience", "current_role", "seniority"],

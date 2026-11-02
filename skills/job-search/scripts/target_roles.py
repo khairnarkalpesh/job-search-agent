@@ -22,9 +22,27 @@ def _confidence(relevance: float) -> str:
     return "medium" if relevance >= 0.55 else "low"
 
 
-def generate_target_roles(profile: dict, limit: int = 14) -> list[dict]:
+# Sections where a skill shows real use. One seen only in a project or a course counts half.
+_FULL_WEIGHT_SECTIONS = {"skills", "experience", "summary", "header"}
+_PROJECT_ONLY_WEIGHT = 0.5
+
+
+def _signal_weight(skill: str, profile: dict) -> float:
+    sources = (profile.get("skill_sources") or {}).get(skill)
+    if sources is None or _FULL_WEIGHT_SECTIONS.intersection(sources):
+        return 1.0
+    return _PROJECT_ONLY_WEIGHT
+
+
+def generate_target_roles(profile: dict, limit: int = 14, summary: str = "") -> list[dict]:
+    """Job titles the resume supports, best first.
+
+    The most recent job title, and the role the summary names ("Frontend engineer with..."),
+    lift their role family above families suggested by skills alone.
+    """
     skills = candidate_skill_set(profile)
     current_role_family = title_family(profile["candidate"].get("current_role", ""))
+    summary_family = title_family(summary[:120]) if summary else None
     demonstrated_skills = {skill for job in profile["experience"] for skill in job["technologies"]}
     target_roles: dict[str, dict] = {}
 
@@ -35,11 +53,15 @@ def generate_target_roles(profile: dict, limit: int = 14) -> list[dict]:
             continue
         if family == "fullstack" and not (skills & _FRONTEND_SIGNALS and skills & _BACKEND_SIGNALS):
             continue
-        relevance = min(len(matched_signals) / _SIGNALS_FOR_FULL_RELEVANCE, 1.0)
+        weight = sum(_signal_weight(skill, profile) for skill in matched_signals)
+        relevance = min(weight / _SIGNALS_FOR_FULL_RELEVANCE, 1.0)
         reason = f"Resume shows {', '.join(matched_signals[:5])}"
         if family == current_role_family or (current_role_family == "general_software" and family == "backend"):
             relevance = min(relevance + _CURRENT_ROLE_BONUS, 1.0)
             reason += "; matches most recent role"
+        elif family == summary_family:
+            relevance = min(relevance + _CURRENT_ROLE_BONUS, 1.0)
+            reason += "; the role your summary names"
         else:
             relevance = min(relevance, _MAXIMUM_RELEVANCE_WITHOUT_ROLE_HISTORY)
         if relevance < _MINIMUM_RELEVANCE:

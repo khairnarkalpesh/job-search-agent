@@ -150,7 +150,12 @@ recommendation: apply, apply and address a gap in your cover letter, or skip.
 python scripts/match_job.py --url https://jobs.lever.co/acme/1234-abcd
 python scripts/match_job.py --text-file job.txt --title "Backend Engineer" --company Acme --location "Pune, India" --source-name LinkedIn
 python scripts/match_job.py --url ... --json      # the full scored record
+python scripts/match_job.py --text-dir fetched/ --source-name Greenhouse   # a folder of listings, best first
 ```
+
+`--text-dir` scores every `.txt` and `.md` file in a folder, one listing per file. It is the
+fallback when the network is blocked: Claude reads each listing with its own web tool and
+saves the text. A listing that says it has closed is skipped.
 
 ## /job-companies
 
@@ -320,6 +325,29 @@ a near-empty listing would otherwise look perfect.
 **Neutral parts.** When a listing says nothing about something, for example years of
 experience, that part gets half marks, and the breakdown says so.
 
+**How a listing is read.**
+
+- A skill takes the strictest level any part of the listing gives it. Named in the
+  requirements, a skills list ("Key Skills", "Tech Stack") or the responsibilities, it is
+  required, even if a "nice to have" list repeats it.
+- "Node.js, Python or PHP" asks for one of them. The best-matched option counts; the others
+  weigh nothing, and if you have none it is one gap ("One of Node.js or Python or PHP"), not three.
+- Experience is read from "5+ years", "3-6 years", "2 to 4 years", "minimum 5 years",
+  "at least 3 years" and "up to 4 years". "Up to 4" is a ceiling, never held against more
+  experience.
+- The level a job asks for comes from its stated years when it gives them, so a "Senior"
+  title asking for 3-6 years is scored as mid-level. Only without years does the title decide.
+- Fundamentals a resume rarely names (Data Structures, OOP, System Design, Testing, Git,
+  Agile) are **unverified**, not missing: half credit, and shown as "Unverified". They never
+  appear in `/job-gaps`.
+- A must-have technology is only "met" by that technology. A related one (Next.js for
+  Vue.js) is left unconfirmed and says so.
+
+**How your resume is read.** Skills marked "(learning)", "basic" or "exposure" are not
+counted. Skills seen only in a project count half towards target roles, and your latest job
+title and your summary's role come first. A bullet wrapped over several lines is one bullet.
+A location naming a state matches its cities: "Maharashtra" matches Pune and Mumbai.
+
 **Skill names** come from `skills/job-search/config/taxonomy.yaml`, which maps aliases
 ("k8s" is Kubernetes) and related skills ("Spring Boot" is close to "Spring"). Add a skill
 there to have it recognised.
@@ -357,6 +385,7 @@ Everything is kept on your machine, in `~/.job-search-agent/`
 | `data/search_history.json` | When each job was first and last seen, and each run's summary |
 | `data/known_boards.json` | Company boards found or added |
 | `preferences.yaml` | Your saved preferences |
+| `data/matched_jobs.json` | Jobs scored one at a time with `/job-match`, counted by `/job-gaps` |
 | `data/ats_report.json` | The last ATS Readiness report (which contact fields were found, never their values) |
 | `data/optimization_plan.json` | The last `/resume-optimize` plan |
 | `data/optimized_resume.md` | The last optimized resume |
@@ -381,6 +410,9 @@ real data.
 | "Skipped …: source unavailable (blocked)" | That board refused the request. The rest of the run is fine |
 | "No jobs reached the minimum score" | It names the best score. Ask for `--all` or a lower minimum |
 | "only N had enough information to score reliably" | Short listings. Normal, especially on portals |
+| "Could not reach any job board" | The network is blocked. Allow network access for code (Claude app: Settings > Capabilities), or ask Claude to read the listings with its own web tool and score them with `match_job.py --text-dir` |
+| "Warning: your profile is an unreviewed draft" | Ask Claude to review your profile (`/job-profile`) before trusting scores |
+| "hires through Darwinbox" (or Keka, Zoho Recruit, Freshteam, Workday) | No public feed. Open the listing and paste it into `/job-match` |
 | Every request fails in the Claude app | The code sandbox cannot reach the job sites. Allow network access for code execution in Settings, or use Claude Code |
 | "REJECTED: the rewrite states things the original resume does not" | The rewrite added a skill, number, title or other fact. Remove it, or give the information and add it to a copy of your original |
 | ATS Readiness differs between your PDF and DOCX | They really are read differently. Fix the risks listed for the file you send |
