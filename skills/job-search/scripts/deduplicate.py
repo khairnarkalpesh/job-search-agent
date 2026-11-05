@@ -9,9 +9,17 @@ from skill_taxonomy import seniority_from_title
 DESCRIPTION_SIMILARITY_THRESHOLD = 0.92
 
 
+# Query parameters that only say where a click came from. Everything else may name the job
+# (gh_jid, token, jobId), so it is kept: dropping it collapsed whole boards into one listing.
+_TRACKING_PARAMETERS = re.compile(r"^(utm_\w+|ref|referrer|source|src|gclid|fbclid|mc_cid|mc_eid|lever-source|lever-origin|gh_src)$")
+
+
 def normalize_url(url: str) -> str:
     parts = urllib.parse.urlsplit(url.lower())
-    return f"{parts.netloc}{parts.path.rstrip('/').removesuffix('/apply')}"
+    query = sorted((key, value) for key, value in urllib.parse.parse_qsl(parts.query)
+                   if not _TRACKING_PARAMETERS.match(key))
+    suffix = f"?{urllib.parse.urlencode(query)}" if query else ""
+    return f"{parts.netloc}{parts.path.rstrip('/').removesuffix('/apply')}{suffix}"
 
 
 def normalize_text(text: str) -> str:

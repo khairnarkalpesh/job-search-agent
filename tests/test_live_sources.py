@@ -13,18 +13,24 @@ from sources import SOURCES, JobBoard
 pytestmark = pytest.mark.live
 
 
-def saved_board(source):
+MAX_BOARDS_TRIED = 5
+
+
+def saved_boards(source):
     boards = [board for folder in ("data", "synthetic_run_output")
               for board in JobStore(REAL_USER_HOME / folder).known_boards() if board.source == source]
     if not boards:
         pytest.skip(f"No saved {source} board yet")
-    return boards[0]
+    return boards[:MAX_BOARDS_TRIED]
 
 
 @pytest.mark.parametrize("source", ["greenhouse", "lever"])
 def test_live_board_returns_listings_with_full_descriptions(source):
-    jobs = SOURCES[source].fetch_board(saved_board(source), HttpClient())
-    assert jobs
+    # A company can have no openings today; the first saved board with listings is checked.
+    client = HttpClient()
+    jobs = next((found for board in saved_boards(source) if (found := SOURCES[source].fetch_board(board, client))), [])
+    if not jobs:
+        pytest.skip(f"None of the first {MAX_BOARDS_TRIED} saved {source} boards has open listings today")
     assert all(job["title"] and job["source_url"].startswith("https://") for job in jobs)
     assert sum(len(job["description"]) > 300 for job in jobs) > len(jobs) / 2
 

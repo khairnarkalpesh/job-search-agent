@@ -1,7 +1,7 @@
 """Work out which job titles a candidate can realistically target."""
 from __future__ import annotations
 
-from skill_taxonomy import taxonomy, title_family
+from skill_taxonomy import skill_spec, taxonomy, title_family
 
 _MINIMUM_RELEVANCE = 0.45
 _SIGNALS_FOR_FULL_RELEVANCE = 4
@@ -13,7 +13,9 @@ _BACKEND_SIGNALS = {"Java", "Spring Boot", "Python", "Django", "Flask", "FastAPI
 
 
 def candidate_skill_set(profile: dict) -> set[str]:
-    return {skill for skills in profile["skills"].values() for skill in skills}
+    """The candidate's skills, plus those a listed tool certainly implies (Jenkins: CI/CD)."""
+    skills = {skill for skills in profile["skills"].values() for skill in skills}
+    return skills | {implied for skill in skills for implied in skill_spec(skill).get("implies", [])}
 
 
 def _confidence(relevance: float) -> str:

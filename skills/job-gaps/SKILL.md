@@ -18,13 +18,15 @@ python scripts/skill_gaps.py [--min-score 40] [--top 10]
 
 It counts only jobs that were scored reliably and that score at least `--min-score`, so
 the answer reflects roles the user is close to, not every listing seen. A skill a job
-requires counts three times as much as one it only mentions.
+requires counts three times as much as one it only mentions. A skill the resume only partly
+covers through a neighbour (Docker for Kubernetes) is still a gap, at half weight, and the
+"You have something close" column names the neighbour.
 
 ## Answer
 
 - The top three or four gaps, each with how many jobs require it.
-- Which of them are close to what the resume already shows (a related skill in
-  `config/taxonomy.yaml`), because those are the quickest to close.
+- Which of them are close to what the resume already shows (the "You have something
+  close" column), because those are the quickest to close.
 - One concrete next step for the biggest gap. Do not recommend claiming a skill the user
   does not have.
 

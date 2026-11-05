@@ -32,9 +32,9 @@ from resume_outline import Section, outline, section_lines, sections_named
 from resume_parser import (EMAIL, ROLE_WORD, WEB_LINK, build_profile, extract_location, extract_name,
                            group_experience, has_phone_number, join_wrapped_lines,
                            remove_contact_details)
-from score_jobs import SKILL_IMPORTANCE, TECHNOLOGY_CATEGORIES, assess_job_skills
+from score_jobs import SKILL_IMPORTANCE, TECHNOLOGY_CATEGORIES, assess_job_skills, requirement_label
 from skill_taxonomy import (SKILL_ROOT, find_skills, seniority_from_title, seniority_from_years, skill_mentions,
-                            skill_spec, surface_form)
+                            shared_surface_form, skill_spec, surface_form, term_in_text)
 
 CATEGORY_MAXIMUMS = {"parsing": 20, "structure": 15, "keywords": 25, "required_skills": 20, "sections": 10,
                      "formatting": 10}
@@ -389,7 +389,8 @@ def _assess_skills_list(view: ResumeView, tally: Tally) -> None:
                 issue=f"{item_count} skills on one line, ungrouped",
                 fix='Group them by kind, one line each: "Languages: ...", "Frameworks: ...".')
     used = set(find_skills("\n".join(work_bullets(view) + section_lines(view.sections, "projects"))))
-    listed_only = [skill for skill in listed if skill not in used]
+    learning = set(view.profile.get("skills_learning", []))  # "Java (learning)" is honest as written
+    listed_only = [skill for skill in listed if skill not in used and skill not in learning]
     # Full credit while at least half the listed skills show up in use.
     tally.check(1, (1 - len(listed_only) / len(listed)) / 0.5,
                 strength="Listed skills are backed by your experience or projects",
@@ -539,13 +540,20 @@ def compare_terms(job: dict, view: ResumeView, evidence_skills: set[str]) -> lis
     for item in assess_job_skills(job, view.resume_skills):
         if item["importance"] == "alternative":
             continue  # another option of an either-or list; the best-matched option stands for it
-        job_term = surface_form(item["skill"], listing_text) or item["skill"]
+        # A listing may name a skill several ways ("Jest or Playwright", "Git ... GitHub"); the one the
+        # resume also uses is the listing's term, so a shared word is never reported as reworded.
+        job_term = (shared_surface_form(item["skill"], listing_text, view.document.text)
+                    or surface_form(item["skill"], listing_text) or item["skill"])
         on_resume = item["match"].lower()
         resume_term = item["matched_with"] or ""
         if on_resume == "exact":
-            resume_term = surface_form(item["skill"], view.document.text)
+            if term_in_text(item["skill"], job_term, view.document.text):
+                resume_term = job_term
+            else:
+                resume_term = surface_form(item["skill"], view.document.text)
             on_resume = "exact" if resume_term.lower() == job_term.lower() else "reworded"
-        terms.append({"skill": item["skill"], "job_term": job_term, "importance": item["importance"],
+        terms.append({"skill": item["skill"], "label": requirement_label(item), "job_term": job_term,
+                      "importance": item["importance"],
                       "on_resume": on_resume, "resume_term": resume_term,
                       "supported_elsewhere": on_resume not in SHOWN_ON_RESUME and item["skill"] in evidence_skills,
                       "category": skill_spec(item["skill"]).get("cat", "other")})
@@ -585,13 +593,16 @@ def _add_term_findings(tally: Tally, chosen: list[dict], weight_of) -> None:
     add(supported, f"Your profile shows these, but this resume never names them: {names}",
         f"Name them where you used them: {names}.")
     for term in absent:
+        name = term.get("label") or term["skill"]
+        one_of = "any one of " if name != term["skill"] else ""
         if term["on_resume"] == "unverified":
-            add([term], f"{term['skill']} is asked for and not named on your resume ({term['importance']})",
-                f"If you have {term['skill']} (coursework, coding contests, work), name it where it shows; "
+            add([term], f"{name} is asked for and not named on your resume ({term['importance']})",
+                f"If you have {name} (coursework, coding contests, work), name it where it shows; "
                 "otherwise leave it out.", needs_information=True)
         else:
-            add([term], f"Not on your resume: {term['skill']} ({term['importance']})",
-                f"Have you used {term['skill']}? If so, say where; it is not added without that.", needs_information=True)
+            add([term], f"Not on your resume: {one_of}{name} ({term['importance']})",
+                f"Have you used {one_of}{name}? If so, say where; it is not added without that.",
+                needs_information=True)
 
 
 REQUIRED_SKILL_POINTS = 15
@@ -625,7 +636,8 @@ def job_requirements(job: dict, terms: list[dict], view: ResumeView, hard_requir
                 for item in hard_requirements[key] if item["type"] == kind]
 
     def brief(term: dict) -> dict:
-        return {key: term[key] for key in ("skill", "job_term", "on_resume", "resume_term", "supported_elsewhere")}
+        return {key: term[key] for key in ("skill", "label", "job_term", "on_resume", "resume_term",
+                                           "supported_elsewhere")}
 
     responsibilities = responsibility_lines(job["description"])
     responsibility_skills = find_skills("\n".join(responsibilities))
@@ -776,14 +788,18 @@ def verdict(ats_report: dict, scored_job: dict) -> str:
     if match_score >= STRONG_MATCH:
         return f"Apply, after fixing the resume: strong fit, but {fixes} fix(es) would help it read (/resume-optimize)."
     if match_score >= WORTH_A_LOOK:
-        missing = scored_job.get("missing_required_skills") or []
+        missing = _missing_required(scored_job)
         return ("Worth applying if you can speak to the gaps: " + ", ".join(missing[:3]) + "." if missing
                 else "Worth applying: a reasonable fit with no required skill missing.")
     return "Probably skip: a weak fit for your profile."
 
 
+def _missing_required(scored_job: dict) -> list[str]:
+    return scored_job.get("missing_required_labels") or scored_job.get("missing_required_skills") or []
+
+
 def format_separate_scores(ats_report: dict, scored_job: dict) -> str:
-    missing = scored_job.get("missing_required_skills") or []
+    missing = _missing_required(scored_job)
     gap_line = (f"{len(missing)} required skill(s) missing for this job: {', '.join(missing)}" if missing
                 else "No required skills missing for this job")
     return "\n".join([

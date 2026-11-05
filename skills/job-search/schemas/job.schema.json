@@ -21,6 +21,9 @@
     "matched_skills": {"type": "array", "items": {"type": "object"}},
     "missing_skills": {"type": "array", "items": {"type": "string"}},
     "missing_required_skills": {"type": "array", "items": {"type": "string"}},
+    "missing_required_labels": {"type": "array", "items": {"type": "string"}, "description": "missing_required_skills as the listing words them: \"GCP, AWS or Azure\" for an either-or list"},
+    "missing_labels": {"type": "array", "items": {"type": "string"}, "description": "Every missing skill, either-or lists named as one"},
+    "partial_skills": {"type": "array", "items": {"type": "object"}, "description": "Skills credited in part through a related or same-group skill the resume shows; still gaps"},
     "unverified_skills": {"type": "array", "items": {"type": "string"}, "description": "Fundamentals the listing asks for and the resume does not name; not counted as missing"},
     "responsibilities": {"type": "array", "items": {"type": "string"}},
     "hard_requirements": {

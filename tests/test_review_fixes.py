@@ -76,7 +76,7 @@ def test_an_or_list_with_no_option_held_is_one_gap_not_three(profile):
     job = build_job(description="Requirements\n- 3+ years of Java\n- Experience with Ruby, PHP or Swift\n" + FILLER)
     scored = score_job(job, profile)
     assert len([gap for gap in scored["gaps"] if "Ruby" in gap or "PHP" in gap or "Swift" in gap]) == 1
-    assert "One of Ruby or PHP or Swift is required" in " ".join(scored["gaps"])
+    assert "One of Ruby, PHP or Swift is required" in " ".join(scored["gaps"])
     assert scored["missing_required_skills"] == ["Ruby"]
 
 
@@ -440,3 +440,171 @@ def test_verify_fails_on_structure_alone():
     result = verify(ResumeDocument("a.md", RESUME), ResumeDocument("b.md", broken), None, set())
     assert not result["passed"] and not result["unsupported_claims"] and result["structure_problems"]
     assert "breaks the resume's structure" in format_verification(result)
+
+
+# Skill list --------------------------------------------------------------------------------
+
+def test_frontend_tools_from_the_review_are_recognised():
+    found = find_skills("Built with SvelteKit, Pinia, react-window, Apache ECharts, Recharts and d3.js")
+    assert {"Svelte", "Pinia", "react-window", "ECharts", "Recharts", "D3.js"} <= set(found)
+
+
+def test_d3_needs_its_own_capitalisation():
+    assert "D3.js" not in find_skills("Vitamin d3 supplements")
+
+
+# Second live run: either-or labels, wording, learning skills, figures, feeds ----------------
+
+FRONTEND = ("Asha Test\nPune, Maharashtra, India | asha@example.com\n\nSummary\nFrontend engineer building React apps.\n\n"
+            "Skills\nLanguages: JavaScript, TypeScript, Java (learning)\nTools: Git, GitHub, Jest\n\nExperience\n"
+            "Frontend Developer | Solvative | Sep 2023 - Present\n"
+            "- Built a React dashboard in TypeScript that renders 5,000 rows\n"
+            "- Wrote Jest tests for checkout flows in JavaScript, raising coverage to 80%\n"
+            "\nEducation\nB.E., Example College, 2022\n\nAchievements\n• 3rd place, national coding contest\n")
+OR_LISTING = ("Requirements\n- React and TypeScript\n- Experience with GCP, AWS or Azure\n"
+              "- Automated testing with Jest or Playwright\n- Code review on GitHub\n" + FILLER)
+
+
+def frontend_report():
+    job = build_job(title="Frontend Engineer", description=OR_LISTING)
+    return job, assess_resume(ResumeDocument("r.md", FRONTEND), job)
+
+
+def test_an_unmet_or_list_is_named_whole_in_the_ats_issues():
+    _, report = frontend_report()
+    issues = " ".join(item["message"] for item in report["issues"])
+    assert "any one of GCP, AWS or Azure" in issues
+
+
+def test_the_score_names_an_unmet_or_list_whole():
+    job = build_job(title="Frontend Engineer", description=OR_LISTING)
+    scored = score_job(job, build_profile(FRONTEND))
+    assert scored["missing_required_skills"] == ["GCP"]
+    assert scored["missing_required_labels"] == ["GCP, AWS or Azure"]
+
+
+def test_a_listing_word_the_resume_shares_is_not_reworded():
+    _, report = frontend_report()
+    reworded = [term["job_term"] for kind in ("required", "preferred")
+                for term in report["job_requirements"][kind] if term["on_resume"] == "reworded"]
+    assert "Playwright" not in reworded and "GitHub" not in reworded
+
+
+def test_a_skill_marked_learning_is_not_told_to_be_dropped():
+    _, report = frontend_report()
+    unbacked = [item["message"] for item in report["issues"] if item["message"].startswith("Listed but never")]
+    assert not unbacked or "Java" not in unbacked[0].split(":", 1)[1].split(", ")
+
+
+def test_job_gaps_counts_an_or_list_as_one_gap():
+    jobs = [{"reliable": True, "match_score": 70, "missing_required_skills": ["GCP"],
+             "missing_required_labels": ["GCP, AWS or Azure"], "missing_skills": ["GCP"],
+             "missing_labels": ["GCP, AWS or Azure"]}]
+    ranking, _ = skill_gaps.rank_gaps(jobs, 40)
+    assert [item["skill"] for item in ranking] == ["GCP, AWS or Azure"]
+
+
+def test_one_skill_compared_cannot_take_full_skill_points(profile):
+    job = build_job(title="AWS Support Engineer", description="Requirements\n- Java scripting for support tasks\n" + FILLER)
+    skills = score_job(job, profile)["score_breakdown"]["skills"]
+    assert skills["score"] < skills["max"]
+
+
+def test_a_lost_figure_fails_the_check_and_a_moved_year_is_reported_once():
+    from resume_facts import ResumeFacts, dropped_facts, unsupported_claims
+    original = ResumeFacts.of("Engineer | Acme | Sep 2023 - Present\n- Built a dashboard that renders 5,000 rows")
+    rewritten = ResumeFacts.of("Engineer | Acme | Jan 2022 - Present\n- Built a dashboard that renders 50,000 rows")
+    assert {"5,000"} == {fact["value"] for fact in dropped_facts(original, rewritten) if fact["kind"] == "figure"}
+    assert {"50,000"} == {fact["value"] for fact in unsupported_claims(original, rewritten, set())
+                          if fact["kind"] == "figure"}
+
+
+def test_the_draft_uses_one_bullet_style():
+    draft = build_draft(ResumeDocument("r.md", FRONTEND), None)
+    assert "- 3rd place, national coding contest" in draft and "•" not in draft
+
+
+def test_the_plan_puts_role_technologies_before_foundations(profile):
+    from resume_optimize import build_plan
+    job = build_job(title="Frontend Engineer", description="Requirements\n- Git and React\n- React, React and TypeScript\n"
+                    + FILLER)
+    emphasise = build_plan(ResumeDocument("r.md", FRONTEND), job, build_profile(FRONTEND))["emphasise"]
+    assert emphasise.index("React") < emphasise.index("Git")
+
+
+def test_the_same_pasted_listing_is_one_job_whatever_its_source_name(tmp_path):
+    listing = tmp_path / "job.txt"
+    listing.write_text("Frontend Engineer\nRequirements\n- React\n" + FILLER, encoding="utf-8")
+    first = match_job.job_from_text(str(listing), source_name="LinkedIn")
+    second = match_job.job_from_text(str(listing), source_name="pasted")
+    assert first["job_id"] == second["job_id"]
+
+
+@pytest.mark.parametrize("garbled, clean", [
+    ("Ø§Ù\x84Ø±Ù\x8aØ§Ø¶", "الرياض"), ("PoznaÅ\x84, Polska", "Poznań, Polska"), ("MÃ¡laga, EspaÃ±a", "Málaga, España"),
+    ("Zürich", "Zürich"), ("naïve résumé", "naïve résumé"),
+])
+def test_text_a_feed_decoded_twice_is_repaired_and_clean_text_is_kept(garbled, clean):
+    from normalize_jobs import repair_mojibake
+    assert repair_mojibake(garbled) == clean
+
+
+def test_html_entities_in_plain_fields_are_decoded():
+    from normalize_jobs import make_job
+    job = make_job(source="remoteok", job_id="1", title="Engineer", company="Larsen &amp; Toubro", location="India",
+                   description="", url="https://remoteok.com/1")
+    assert job["company"] == "Larsen & Toubro"
+
+
+@pytest.mark.parametrize("place", ["Poznań, Polska", "Balneário Camboriú, Santa Catarina, Brasil", "الرياض السعودية"])
+def test_a_remote_job_limited_to_a_foreign_country_in_its_own_language_is_a_mismatch(place):
+    job = {"location": place, "remote": True, "workplace_type": ""}
+    assert match_location(job, ["Remote", "India"]).status == "mismatch"
+
+
+# Application tracker -------------------------------------------------------------------------
+
+import applications
+
+
+def tracker_run(data_dir, *argv):
+    return applications.run(applications.parse_arguments(["--data-dir", str(data_dir), *argv]))
+
+
+def test_a_scored_job_is_tracked_from_its_url_and_its_status_reaches_the_history(tmp_path, capsys):
+    store = JobStore(tmp_path)
+    job = {**build_job(title="Frontend Engineer"), "match_score": 81, "reliable": True}
+    store.record_results([job], {})
+    url = job["source_url"]
+    assert tracker_run(tmp_path, "add", url, "--date", "2026-10-01") == 0
+    assert tracker_run(tmp_path, "update", url, "--status", "interviewing", "--date", "2026-10-05") == 0
+    entry = json.loads((tmp_path / "applications.json").read_text(encoding="utf-8"))[0]
+    assert (entry["title"], entry["match_score"], entry["status"], entry["applied"]) == (
+        "Frontend Engineer", 81, "interviewing", "2026-10-01")
+    assert [step["status"] for step in entry["history"]] == ["applied", "interviewing"]
+    history = json.loads(store.history_path.read_text(encoding="utf-8"))
+    assert history["jobs"][job["job_id"]]["status"] == "interviewing"
+
+
+def test_an_unknown_job_needs_a_title_and_company(tmp_path):
+    assert tracker_run(tmp_path, "add", "https://example.com/jobs/1") == 2
+    assert tracker_run(tmp_path, "add", "https://example.com/jobs/1", "--title", "UI Engineer", "--company", "Ex") == 0
+    assert tracker_run(tmp_path, "add", "https://example.com/jobs/1") == 1  # already tracked
+
+
+def test_a_tracked_job_is_found_by_company_unless_that_is_ambiguous(tmp_path):
+    tracker_run(tmp_path, "add", "a", "--title", "UI Engineer", "--company", "Acme")
+    tracker_run(tmp_path, "add", "b", "--title", "UI Engineer", "--company", "Globex")
+    assert tracker_run(tmp_path, "update", "acme", "--status", "rejected") == 0
+    assert tracker_run(tmp_path, "update", "UI Engineer", "--status", "offer") == 2
+
+
+def test_a_bad_date_is_refused(tmp_path):
+    assert tracker_run(tmp_path, "add", "a", "--title", "T", "--company", "C", "--date", "2026-13-01") == 2
+
+
+def test_a_quiet_application_needs_a_follow_up():
+    entry = {"status": "applied", "updated": "2026-10-01"}
+    assert applications.needs_follow_up(entry, on="2026-10-20")
+    assert not applications.needs_follow_up(entry, on="2026-10-10")
+    assert not applications.needs_follow_up({**entry, "status": "rejected"}, on="2026-12-01")

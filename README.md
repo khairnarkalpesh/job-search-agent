@@ -1,6 +1,6 @@
 # Job search agent
 
-Seven Claude skills that find real, open jobs for your resume, tell you how well each one
+Eight Claude skills that find real, open jobs for your resume, tell you how well each one
 fits, and make your resume readable by screening software without inventing anything. Free,
 MIT, no signup, no API key.
 
@@ -45,7 +45,7 @@ Code execution must be on, and its network access must allow the job sites (or a
 domains), or every search comes back empty. Saved results do not carry over between chats
 there.
 
-## The seven
+## The eight
 
 | Command | What it does |
 | --- | --- |
@@ -56,6 +56,7 @@ there.
 | `/job-gaps` | The skills you are missing, ranked by how many of your matching jobs ask for them. |
 | `/resume-ats` | ATS Readiness: whether screening software can parse your resume file, generally or for one job, with the fixes in order. |
 | `/resume-optimize` | Your resume targeted at a job, then fact-checked: nothing added that your resume does not say, nothing lost. Before and after scores. |
+| `/job-tracker` | The jobs you applied to: applied, interviewing, offer or rejected, with dates and notes, and a nudge when one has gone quiet for two weeks. |
 
 A typical first session: `/job-profile` with your resume, then `/job-search`, then
 `/job-match` on anything you found elsewhere. Before applying, `/resume-ats` on your resume

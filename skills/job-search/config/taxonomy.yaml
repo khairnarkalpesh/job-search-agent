@@ -7,6 +7,7 @@
 #   cs       true = aliases are case-sensitive (needed for "Go", "REST", "R")
 #   related  closely related skills. Candidate having one = RELATED (0.7 credit)
 #   group    skills in the same group = TRANSFERABLE (0.4 credit)
+#   implies  skills a candidate who lists this one certainly has (Jenkins implies CI/CD)
 # A pair that is neither related nor grouped is MISSING. Keep groups narrow:
 # Java and Node.js deliberately share neither, because they are not equivalent.
 
@@ -35,7 +36,7 @@ skills:
   Spring Boot: {cat: frameworks, group: java_web, aliases: [Spring Boot, SpringBoot], related: [Spring Framework, Java]}
   Spring Framework: {cat: frameworks, group: java_web, aliases: [Spring Framework, Spring MVC, Spring], related: [Spring Boot], cs: true}
   Hibernate: {cat: frameworks, group: java_web, aliases: [Hibernate, JPA], related: [Spring Boot]}
-  Microservices: {cat: backend, aliases: [Microservices, Microservice, Micro-services, Distributed systems, Service-oriented architecture, SOA], related: [Spring Boot]}
+  Microservices: {cat: backend, aliases: [Microservices, Microservice, Micro-services, Service-oriented architecture, SOA], related: [Spring Boot]}
   Node.js: {cat: frameworks, group: js_backend, aliases: [Node.js, NodeJS, Node], cs: true, related: [Express.js, NestJS]}
   Express.js: {cat: frameworks, group: js_backend, aliases: [Express.js, ExpressJS], related: [Node.js]}
   NestJS: {cat: frameworks, group: js_backend, aliases: [NestJS, Nest.js], related: [Node.js]}
@@ -69,6 +70,13 @@ skills:
   Webpack: {cat: frontend, group: build_tool, related: [Vite]}
   Zod: {cat: frontend, related: [TypeScript]}
   Storybook: {cat: frontend, related: [React]}
+  Figma: {cat: frontend, aliases: [Figma]}
+  Svelte: {cat: frontend, group: spa_framework, aliases: [Svelte, SvelteKit]}
+  Pinia: {cat: frontend, group: state_management, aliases: [Pinia, Vuex], related: [Vue.js]}
+  react-window: {cat: frontend, aliases: [react-window, react-virtualized, React Virtuoso, TanStack Virtual], related: [React]}
+  ECharts: {cat: frontend, group: charting, aliases: [ECharts, Apache ECharts]}
+  Recharts: {cat: frontend, group: charting, related: [React]}
+  D3.js: {cat: frontend, group: charting, cs: true, aliases: [D3.js, D3, d3.js]}
   Material UI: {cat: frontend, aliases: [Material UI, Material-UI, MUI], related: [React]}
 
   # Mobile
@@ -101,10 +109,15 @@ skills:
   Kubernetes: {cat: devops, group: containers, aliases: [Kubernetes, K8s, k8s, EKS, GKE, AKS, Helm]}
   Terraform: {cat: devops, group: iac, aliases: [Terraform, Infrastructure as code, IaC]}
   Ansible: {cat: devops, group: iac}
-  CI/CD: {cat: devops, aliases: [CI/CD, CICD, Continuous integration, Continuous delivery, Jenkins, GitHub Actions, GitLab CI, CircleCI]}
+  CI/CD: {cat: devops, aliases: [CI/CD, CICD, Continuous integration, Continuous delivery, Continuous deployment]}
+  Jenkins: {cat: devops, group: ci_tool, implies: [CI/CD]}
+  GitHub Actions: {cat: devops, group: ci_tool, implies: [CI/CD], aliases: [GitHub Actions, GitHub Action]}
+  GitLab CI: {cat: devops, group: ci_tool, implies: [CI/CD], aliases: [GitLab CI, GitLab CI/CD]}
+  CircleCI: {cat: devops, group: ci_tool, implies: [CI/CD], aliases: [CircleCI, Circle CI]}
   Git: {cat: devops, cs: true, foundation: true, aliases: [Git, GitHub, GitLab, Bitbucket]}
   Linux: {cat: devops, aliases: [Linux, Unix]}
-  Prometheus: {cat: devops, group: observability, aliases: [Prometheus, Grafana]}
+  Prometheus: {cat: devops, group: observability, related: [Grafana]}
+  Grafana: {cat: devops, group: observability, related: [Prometheus]}
   Datadog: {cat: devops, group: observability, aliases: [Datadog, New Relic, Splunk]}
 
   # Messaging and data
@@ -113,6 +126,9 @@ skills:
   Apache Spark: {cat: ai_ml, group: big_data, aliases: [Apache Spark, Spark, PySpark], cs: true}
   Airflow: {cat: ai_ml, aliases: [Airflow, Apache Airflow]}
   dbt: {cat: ai_ml, cs: true, aliases: [dbt, DBT]}
+  Pandas: {cat: ai_ml, group: dataframe, related: [Python, NumPy]}
+  NumPy: {cat: ai_ml, related: [Python, Pandas]}
+  scikit-learn: {cat: ai_ml, aliases: [scikit-learn, sklearn, scikit learn], related: [Machine Learning]}
   ETL: {cat: ai_ml, cs: true, aliases: [ETL, ELT, Data pipelines, Data pipeline]}
 
   # AI / ML
@@ -173,7 +189,7 @@ role_families:
     titles: [Full Stack Engineer, Full Stack Developer]
     title_patterns: ['\b(full[- ]?stack)\b']
   frontend:
-    signals: [React, Next.js, Angular, Vue.js, TypeScript, JavaScript, HTML, CSS, Redux, Tailwind CSS, Zustand, TanStack Query, Vite]
+    signals: [React, Next.js, Angular, Vue.js, TypeScript, JavaScript, HTML, CSS, Redux, Tailwind CSS, Zustand, TanStack Query, Vite, Svelte, Pinia]
     titles: [Frontend Engineer, Frontend Developer, UI Engineer, React Developer]
     title_patterns: ['\b(front[- ]?end|ui engineer|ui developer|web developer|react developer|react engineer)\b']
   backend:
@@ -219,15 +235,15 @@ locations:
     canada: [Canada, Toronto, Vancouver, Montreal, Ottawa, Calgary, Waterloo]
     united_kingdom: [United Kingdom, UK, U.K., England, Scotland, London, Manchester, Edinburgh, Cambridge, Bristol]
     ireland: [Ireland, Dublin]
-    germany: [Germany, Berlin, Munich, Hamburg, Frankfurt]
+    germany: [Germany, Berlin, Munich, Hamburg, Frankfurt, Deutschland]
     france: [France, Paris]
-    netherlands: [Netherlands, Amsterdam, Rotterdam]
-    spain: [Spain, Madrid, Barcelona]
+    netherlands: [Netherlands, Amsterdam, Rotterdam, Nederland]
+    spain: [Spain, Madrid, Barcelona, España, Espana, Valencia, Seville, Málaga, Malaga, Andalucía]
     portugal: [Portugal, Lisbon, Porto]
-    italy: [Italy, Milan, Rome]
-    poland: [Poland, Warsaw, Krakow]
+    italy: [Italy, Milan, Rome, Italia]
+    poland: [Poland, Warsaw, Krakow, Polska, Wroclaw, Wrocław, Poznan, Poznań, Gdansk, Gdańsk]
     sweden: [Sweden, Stockholm]
-    switzerland: [Switzerland, Zurich, Geneva]
+    switzerland: [Switzerland, Zurich, Geneva, Schweiz, Suisse]
     israel: [Israel, Tel Aviv]
     uae: [UAE, United Arab Emirates, Dubai, Abu Dhabi]
     singapore: [Singapore]
@@ -237,12 +253,12 @@ locations:
     hong_kong: [Hong Kong]
     australia: [Australia, Sydney, Melbourne]
     new_zealand: [New Zealand, Auckland]
-    brazil: [Brazil, Sao Paulo, São Paulo]
-    mexico: [Mexico, Mexico City]
+    brazil: [Brazil, Sao Paulo, São Paulo, Brasil, Rio de Janeiro, Brasília, Brasilia, Belo Horizonte, Curitiba, Florianópolis, Santa Catarina]
+    mexico: [Mexico, Mexico City, México, Guadalajara, Monterrey]
     argentina: [Argentina, Buenos Aires]
     colombia: [Colombia, Bogota]
     philippines: [Philippines, Manila]
-    saudi_arabia: [Saudi Arabia, Riyadh, Jeddah]
+    saudi_arabia: [Saudi Arabia, Riyadh, Jeddah, السعودية, الرياض]
     qatar: [Qatar, Doha]
     egypt: [Egypt, Cairo]
     turkey: [Turkey, Türkiye, Istanbul]
@@ -265,15 +281,52 @@ locations:
     greece: [Greece, Athens]
     czechia: [Czech Republic, Czechia, Prague]
     hungary: [Hungary, Budapest]
-    austria: [Austria, Vienna]
+    austria: [Austria, Vienna, Österreich]
     belgium: [Belgium, Brussels]
     denmark: [Denmark, Copenhagen]
     norway: [Norway, Oslo]
     finland: [Finland, Helsinki]
     chile: [Chile, Santiago]
-    peru: [Peru, Lima]
+    peru: [Peru, Lima, Perú]
     costa_rica: [Costa Rica, San Jose, Costa Rica]
     uruguay: [Uruguay, Montevideo]
+    azerbaijan: [Azerbaijan, Baku]
+    georgia_country: [Tbilisi]
+    armenia: [Armenia, Yerevan]
+    kazakhstan: [Kazakhstan, Almaty, Astana]
+    uzbekistan: [Uzbekistan, Tashkent]
+    russia: [Russia, Moscow, Saint Petersburg, St. Petersburg]
+    belarus: [Belarus, Minsk]
+    moldova: [Moldova, Chisinau]
+    estonia: [Estonia, Tallinn]
+    latvia: [Latvia, Riga]
+    lithuania: [Lithuania, Vilnius]
+    slovakia: [Slovakia, Bratislava]
+    slovenia: [Slovenia, Ljubljana]
+    luxembourg: [Luxembourg]
+    cyprus: [Cyprus, Limassol, Nicosia]
+    malta: [Malta, Valletta]
+    iceland: [Iceland, Reykjavik]
+    bosnia: [Bosnia, Sarajevo]
+    north_macedonia: [North Macedonia, Skopje]
+    albania: [Albania, Tirana]
+    morocco: [Morocco, Casablanca, Rabat]
+    tunisia: [Tunisia, Tunis]
+    ghana: [Ghana, Accra]
+    ethiopia: [Ethiopia, Addis Ababa]
+    rwanda: [Rwanda, Kigali]
+    jordan: [Amman]  # "Jordan" alone is also a first name
+    lebanon: [Lebanon, Beirut]
+    bahrain: [Bahrain, Manama]
+    kuwait: [Kuwait]
+    oman: [Oman, Muscat]
+    nepal: [Nepal, Kathmandu]
+    cambodia: [Cambodia, Phnom Penh]
+    ecuador: [Ecuador, Quito]
+    venezuela: [Venezuela, Caracas]
+    guatemala: [Guatemala]
+    panama: [Panama]
+    dominican_republic: [Dominican Republic, Santo Domingo]
   regions:
     emea: [united_kingdom, ireland, germany, france, netherlands, spain, portugal, italy, poland, sweden, switzerland, israel, uae]
     europe: [united_kingdom, ireland, germany, france, netherlands, spain, portugal, italy, poland, sweden, switzerland]

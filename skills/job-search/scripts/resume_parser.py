@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from location_matching import countries_in
+from location_matching import countries_in, states_named
 from skill_taxonomy import (SKILL_CATEGORIES, find_skills, seniority_from_title, seniority_from_years, skill_mentions,
                             skill_spec)
 from target_roles import generate_target_roles
@@ -145,11 +145,14 @@ def extract_location(header_lines: list[str]) -> str:
     for line in header_lines[:8]:
         if SYNTHETIC_MARKER in line.upper():
             continue
-        for segment in re.split(r"[|•·]|\s{2,}", line):
+        # " - " separates fields as often as "|" does: "Pune, India - name@example.com".
+        for segment in re.split(r"[|•·]|\s{2,}|\s[-–—](?:\s|$)", line):
             if countries_in(segment):
                 parts = [part.strip() for part in segment.split(",") if part.strip()]
                 without_street = [part for part in parts if not re.search(r"\d", part)]
-                location = ", ".join(without_street[-2:])
+                # "Pune, Maharashtra, India": keeping only the state and country would lose the city.
+                keep = 3 if len(without_street) >= 3 and states_named(without_street[-2]) else 2
+                location = ", ".join(without_street[-keep:])
                 return re.sub(r"^(location|address)\s*:\s*", "", location, flags=re.IGNORECASE)
     return ""
 

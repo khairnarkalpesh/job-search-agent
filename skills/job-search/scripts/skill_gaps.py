@@ -20,6 +20,8 @@ from skill_taxonomy import DATA_DIR
 
 REQUIRED_WEIGHT = 3
 OTHER_WEIGHT = 1
+PARTIAL_FACTOR = 0.5  # a skill partly covered by a neighbour (Docker for Kubernetes) is half as urgent
+FEW_JOBS = 10  # below this many jobs, a ranking is a hint, not a pattern
 
 
 def parse_arguments(argv=None) -> argparse.Namespace:
@@ -35,13 +37,25 @@ def rank_gaps(jobs: list[dict], min_score: int) -> tuple[list[dict], int]:
     counted = [job for job in jobs if job.get("reliable") and job.get("match_score", 0) >= min_score]
     required = collections.Counter()
     mentioned = collections.Counter()
+    partly_required = collections.Counter()
+    partly_mentioned = collections.Counter()
+    close_to: dict[str, set[str]] = collections.defaultdict(set)
     for job in counted:
-        required_here = set(job.get("missing_required_skills") or [])
+        for item in job.get("partial_skills", []):
+            (partly_required if item["importance"] == "required" else partly_mentioned)[item["skill"]] += 1
+            close_to[item["skill"]].add(item["matched_with"])
+        # An either-or list is one gap, named as the listing names it: "GCP, AWS or Azure".
+        # Results saved before labels existed fall back to the skill names.
+        required_here = set(job.get("missing_required_labels") or job.get("missing_required_skills") or [])
         required.update(required_here)
-        mentioned.update(set(job.get("missing_skills") or []) - required_here)
-    ranking = [{"skill": skill, "required_by": required[skill], "mentioned_by": mentioned[skill],
-                "weight": required[skill] * REQUIRED_WEIGHT + mentioned[skill] * OTHER_WEIGHT}
-               for skill in set(required) | set(mentioned)]
+        mentioned.update(set(job.get("missing_labels") or job.get("missing_skills") or []) - required_here)
+    ranking = [{"skill": skill, "required_by": required[skill] + partly_required[skill],
+                "mentioned_by": mentioned[skill] + partly_mentioned[skill],
+                "partly_covered_in": partly_required[skill] + partly_mentioned[skill],
+                "close_to": sorted(close_to.get(skill, ())),
+                "weight": required[skill] * REQUIRED_WEIGHT + mentioned[skill] * OTHER_WEIGHT
+                + PARTIAL_FACTOR * (partly_required[skill] * REQUIRED_WEIGHT + partly_mentioned[skill] * OTHER_WEIGHT)}
+               for skill in set(required) | set(mentioned) | set(partly_required) | set(partly_mentioned)]
     ranking.sort(key=lambda item: (-item["weight"], item["skill"].lower()))
     return ranking, len(counted)
 
@@ -61,9 +75,13 @@ def run(arguments) -> int:
         print(f"No missing skills across {counted} reliably scored jobs at {arguments.min_score}+.")
         return 0
     print(f"Skills missing from your resume, across {counted} reliably scored jobs scoring {arguments.min_score}+\n")
-    print("| Skill | Required by | Mentioned by |\n|---|---|---|")
+    print("| Skill | Required by | Mentioned by | You have something close |\n|---|---|---|---|")
     for item in ranking:
-        print(f"| {item['skill']} | {item['required_by']} | {item['mentioned_by']} |")
+        close = (f"{', '.join(item['close_to'])} (in {item['partly_covered_in']} job(s))"
+                 if item["partly_covered_in"] else "")
+        print(f"| {item['skill']} | {item['required_by']} | {item['mentioned_by']} | {close} |")
+    if counted < FEW_JOBS:
+        print(f"\nOnly {counted} job(s) counted, so this is a hint, not a pattern. Score more jobs first.")
     return 0
 
 

@@ -1,6 +1,6 @@
 # Job search agent: the guide
 
-Everything the seven skills do, every option they take, and what to do when something goes
+Everything the eight skills do, every option they take, and what to do when something goes
 wrong. For a quick start, see the [README](../README.md).
 
 - [How the pieces fit](#how-the-pieces-fit)
@@ -11,6 +11,7 @@ wrong. For a quick start, see the [README](../README.md).
 - [/job-gaps](#job-gaps): what to learn next
 - [/resume-ats](#resume-ats): can screening software read your resume
 - [/resume-optimize](#resume-optimize): target your resume at a job, truthfully
+- [/job-tracker](#job-tracker): the jobs you applied to
 - [Three separate scores](#three-separate-scores)
 - [Sources](#sources)
 - [How a score is worked out](#how-a-score-is-worked-out)
@@ -189,6 +190,9 @@ something you already know, and suggests one concrete next step.
 python scripts/skill_gaps.py --min-score 50 --top 15
 ```
 
+An either-or requirement ("GCP, AWS or Azure") is one gap, named as the listing names it.
+With fewer than 10 jobs counted, the report says it is a hint, not a pattern.
+
 ## /resume-ats
 
 **Ask:** "Is my resume ATS friendly?", "Check my CV for this job: `<link>`", or attach the
@@ -259,6 +263,23 @@ which the rewrite is then checked against.
 The check is literal: it catches added facts, not a sentence that overstates a fact already
 there ("helped with" becoming "led"). Claude is instructed against that, and you should still
 read the result before sending it.
+
+## /job-tracker
+
+**Ask:** "I applied to this job", "Mark Acme as interviewing", "Show my applications".
+
+Keeps the jobs you apply to, with a status (saved, applied, interviewing, offer, rejected,
+withdrawn), the date of each change and your notes. A job you scored with `/job-search` or
+`/job-match` is found by its link, and its title, company and match score come with it; any
+other job needs a title and a company. The status is also kept in the search history, so a
+later search still knows you applied. An application with no news for 14 days is marked
+"follow up?".
+
+```bash
+python scripts/applications.py add "<job url>" --date 2026-11-02 --note "Referred by a friend"
+python scripts/applications.py update acme --status interviewing
+python scripts/applications.py list
+```
 
 ## Three separate scores
 
@@ -386,6 +407,7 @@ Everything is kept on your machine, in `~/.job-search-agent/`
 | `data/known_boards.json` | Company boards found or added |
 | `preferences.yaml` | Your saved preferences |
 | `data/matched_jobs.json` | Jobs scored one at a time with `/job-match`, counted by `/job-gaps` |
+| `data/applications.json` | Jobs you track with `/job-tracker`: status, dates, notes |
 | `data/ats_report.json` | The last ATS Readiness report (which contact fields were found, never their values) |
 | `data/optimization_plan.json` | The last `/resume-optimize` plan |
 | `data/optimized_resume.md` | The last optimized resume |

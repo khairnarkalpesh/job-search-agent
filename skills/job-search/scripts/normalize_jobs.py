@@ -143,16 +143,17 @@ def detect_remote(location: str, workplace_type: str = "") -> bool | None:
     return None
 
 
-# UTF-8 read as Latin-1 turns é into Ã©, a non-breaking space into Â and a dash into â€“.
-_MOJIBAKE_MARKERS = ("Ã", "Â", "â€")
+# UTF-8 read as Latin-1 turns é into Ã©, ń into Å\x84, Arabic into Ø§Ù and a dash into â€“:
+# a lead byte (Â-ô) followed by a continuation byte (\x80-¿), or cp1252's € for \x80.
+_MOJIBAKE = re.compile("[Â-ô][\u0080-¿€‚-›™ŒœŠšŸŽž]")
 
 
 def repair_mojibake(text: str) -> str:
-    """Undo UTF-8 text that a source decoded as Latin-1 once already ("MÃ©xico").
+    """Undo UTF-8 text that a source decoded as Latin-1 once already ("MÃ©xico", "PoznaÅ\x84").
 
     Text that does not decode cleanly is left exactly as it was.
     """
-    if not text or not any(marker in text for marker in _MOJIBAKE_MARKERS):
+    if not text or not _MOJIBAKE.search(text):
         return text
     for codec in ("latin-1", "cp1252"):
         try:
@@ -166,6 +167,10 @@ _CLOSED_PHRASES = re.compile(
     r"no longer (?:accepting applications|available|open|active|being accepted)|this (?:job|position|role|posting) "
     r"(?:has (?:expired|closed|been filled)|is closed)|(?:position|job) has been filled|applications? (?:are|is) "
     r"(?:now )?closed|job (?:posting )?(?:not found|has expired)", re.IGNORECASE)
+# "Our previous role is no longer open, but this one is" is about another job. Only the words
+# before the notice count: "no longer available; see our other openings" still closes this one.
+_OTHER_ROLE = re.compile(r"\b(previous|former|earlier|another|other|similar|sister)\s+(?:[\w-]+\s+){0,3}"
+                         r"(roles?|jobs?|positions?|openings?|postings?|vacanc(?:y|ies))\b", re.IGNORECASE)
 
 
 def closed_listing_reason(text: str, url: str = "") -> str:
@@ -178,8 +183,11 @@ def closed_listing_reason(text: str, url: str = "") -> str:
     if re.search(r"[?&]error=true\b", url):
         return "the board redirected it to an error page"
     head = "\n".join(text.strip().splitlines()[:15])
-    found = _CLOSED_PHRASES.search(head)
-    return f'the page says "{found.group(0)}"' if found else ""
+    for found in _CLOSED_PHRASES.finditer(head):
+        start = max(head.rfind(".", 0, found.start()), head.rfind("\n", 0, found.start())) + 1
+        if not _OTHER_ROLE.search(head[start:found.start()]):
+            return f'the page says "{found.group(0)}"'
+    return ""
 
 
 def make_job(*, source: str, job_id: str, title: str, company: str, location: str, description: str,
@@ -191,10 +199,11 @@ def make_job(*, source: str, job_id: str, title: str, company: str, location: st
     Text analysis lives in enrich_job, because some boards hold thousands of
     listings and most are dropped by the title filter before it is needed.
     """
-    title = re.sub(r"\s+", " ", repair_mojibake(title or "")).strip()
-    location = re.sub(r"\s+", " ", repair_mojibake(location or "")).strip()
+    # Some feeds leave HTML entities in plain fields: "Larsen &amp; Toubro".
+    title = re.sub(r"\s+", " ", html.unescape(repair_mojibake(title or ""))).strip()
+    location = re.sub(r"\s+", " ", html.unescape(repair_mojibake(location or ""))).strip()
     description = repair_mojibake(description or "").strip()
-    company = repair_mojibake(company or "")
+    company = html.unescape(repair_mojibake(company or ""))
     return {
         "job_id": f"{source}:{board or company}:{job_id}",
         "title": title,

@@ -121,9 +121,14 @@ def job_from_text(text_file: str, title: str = "", company: str = "", location: 
     if closed:
         raise ValueError(f"this listing has closed: {closed}")
     stated = listing_fields(text)
-    return make_job(source="manual", board=source_name, job_id=hashlib.sha1(text.encode()).hexdigest()[:16],
-                    title=title or stated.get("title", ""), company=company or stated.get("company", ""),
-                    location=location or stated.get("location", ""), description=text, url="")
+    text_id = hashlib.sha1(text.encode()).hexdigest()[:16]
+    job = make_job(source="manual", board=source_name, job_id=text_id,
+                   title=title or stated.get("title", ""), company=company or stated.get("company", ""),
+                   location=location or stated.get("location", ""), description=text, url="")
+    # The text alone names the job: the same listing pasted twice under different --source-name
+    # values is one job, so /job-gaps does not count it twice.
+    job["job_id"] = f"manual:text:{text_id}"
+    return job
 
 
 def read_job(arguments: argparse.Namespace, client=None) -> dict:

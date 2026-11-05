@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "job-search-agent",
-      "description": "Seven Claude skills that find open jobs for your resume across company job boards, job portals and career websites, score each one with the reasons and the gaps, check your resume's ATS Readiness, and target it at a job without inventing anything.",
+      "description": "Eight Claude skills that find open jobs for your resume across company job boards, job portals and career websites, score each one with the reasons and the gaps, check your resume's ATS Readiness, target it at a job without inventing anything, and track your applications.",
       "source": "./",
       "category": "productivity",
       "homepage": "https://github.com/khairnarkalpesh/job-search-agent"

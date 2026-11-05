@@ -128,6 +128,26 @@ def surface_form(skill: str, text: str) -> str:
     return ""
 
 
+def shared_surface_form(skill: str, text: str, other: str) -> str:
+    """The words text uses for a skill that other uses too, longest first; "" if they share none."""
+    spec = skill_spec(skill)
+    aliases = spec.get("aliases") or [skill]
+    if skill not in aliases and not spec.get("cs"):
+        aliases = [skill, *aliases]
+    flags = 0 if spec.get("cs") else re.IGNORECASE
+    for term in sorted(aliases, key=len, reverse=True):
+        match = re.search(_boundary_pattern(term), text, flags)
+        if match and term_in_text(skill, match.group(), other):
+            return match.group()
+    return ""
+
+
+def term_in_text(skill: str, term: str, text: str) -> bool:
+    """True when text uses exactly these words for the skill, as a whole term."""
+    flags = 0 if skill_spec(skill).get("cs") else re.IGNORECASE
+    return bool(term) and re.search(_boundary_pattern(term), text, flags) is not None
+
+
 def skill_spec(name: str) -> dict:
     return taxonomy()["skills"].get(name, {})
 

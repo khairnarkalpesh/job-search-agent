@@ -21,6 +21,7 @@
       "required": ["skill", "job_term", "on_resume", "resume_term", "supported_elsewhere"],
       "properties": {
         "skill": {"type": "string"},
+        "label": {"type": "string", "description": "The requirement as the listing words it: \"GCP, AWS or Azure\" for an either-or list"},
         "job_term": {"type": "string", "description": "The listing's own wording"},
         "on_resume": {"enum": ["exact", "reworded", "related", "transferable", "unverified", "missing"]},
         "resume_term": {"type": "string"},

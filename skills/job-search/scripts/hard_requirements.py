@@ -171,6 +171,26 @@ def requirement_units(line: str) -> list[list[str]]:
 _EXAMPLES = re.compile(r"\b(such as|e\.g\.|for example|for instance|including)\b", re.IGNORECASE)
 
 
+def _check_title_language(job, candidate_skills, result) -> None:
+    """A programming language in the title ("Backend Engineer (Go)") is the job's core skill.
+
+    Any one of the title's languages held exactly is enough ("Kotlin/Java"). A related
+    language is not: Kotlin experience does not make a Java role a near fit.
+    """
+    languages = [skill for skill in find_skills(job.get("title", ""))
+                 if taxonomy()["skills"].get(skill, {}).get("cat") == "programming_languages"]
+    if not languages:
+        return
+    held = [language for language in languages if language in candidate_skills]
+    asked = " or ".join(languages)
+    if held:
+        result["met"].append(_requirement("technology", job["title"], f"You have {held[0]}, the language in the title"))
+    elif not any(entry["type"] == "technology" and any(language in entry["detail"] for language in languages)
+                 for entry in result["failed"]):
+        result["failed"].append(_requirement("technology", job["title"],
+                                             f"The title asks for {asked}, which your resume does not show", MAJOR))
+
+
 def _check_mandatory_technologies(job, candidate_skills, result) -> None:
     """A technology a line insists on ("must", "strong") and the resume lacks is a hard gap.
 
@@ -260,6 +280,7 @@ def evaluate_hard_requirements(job: dict, profile: dict, preferences: dict, cand
     _check_degree(job, profile, result)
     _check_certifications(job, profile, result)
     _check_mandatory_technologies(job, candidate_skills, result)
+    _check_title_language(job, candidate_skills, result)
     _check_work_authorization(job, preferences, result)
     _check_location(location_match, result)
     _check_spoken_languages(job, profile, result)

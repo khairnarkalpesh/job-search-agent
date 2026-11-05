@@ -110,7 +110,8 @@ def test_skill_gaps_weigh_required_skills_above_mentions():
     ranking, counted = skill_gaps.rank_gaps(jobs, 40)
     assert counted == 3
     assert [item["skill"] for item in ranking] == ["Kafka", "Go", "Rust"]
-    assert ranking[0] == {"skill": "Kafka", "required_by": 2, "mentioned_by": 0, "weight": 6}
+    assert ranking[0] == {"skill": "Kafka", "required_by": 2, "mentioned_by": 0, "partly_covered_in": 0, "close_to": [],
+                          "weight": 6}
 
 
 def test_skill_gaps_command_reads_saved_results(capsys, tmp_path):

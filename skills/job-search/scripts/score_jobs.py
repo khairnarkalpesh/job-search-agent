@@ -21,6 +21,7 @@ TECHNOLOGY_CATEGORIES = {"databases", "cloud", "devops"}
 # A disqualifier limits the score however good the rest of the match looks.
 SCORE_CAP_ONE_MAJOR_GAP = 64
 SCORE_CAP_SEVERAL_MAJOR_GAPS = 49
+SCORE_CAP_WRONG_LOCATION = 49
 NEUTRAL_FRACTION = 0.5  # used where a listing gives nothing to compare, and always disclosed
 MINIMUM_RELIABLE_DESCRIPTION_LENGTH = 300
 MINIMUM_RELIABLE_SKILL_COUNT = 3  # with fewer, one lucky match would look like a perfect score
@@ -61,6 +62,12 @@ def assess_job_skills(job: dict, candidate_skills: set[str]) -> list[dict]:
     return assessments
 
 
+def requirement_label(item: dict) -> str:
+    """"GCP, AWS or Azure" for an either-or requirement, the skill alone otherwise."""
+    options = [item["skill"], *item.get("alternatives", [])]
+    return options[0] if len(options) == 1 else f"{', '.join(options[:-1])} or {options[-1]}"
+
+
 def _apply_alternatives(job: dict, assessments: list[dict]) -> None:
     """"Node.js, Python or PHP" asks for one of the three, not all three.
 
@@ -85,7 +92,14 @@ def _weighted_fraction(assessments: list[dict]) -> float | None:
     if not total_weight:
         return None
     earned = sum(SKILL_IMPORTANCE[item["importance"]] * MATCH_CREDIT[item["match"]] for item in assessments)
-    return earned / total_weight
+    fraction = earned / total_weight
+    # One or two skills say little: the fraction is pulled toward neutral, so a support or
+    # estimation role naming only "Python" cannot take full skill points from that one match.
+    counted = len([item for item in assessments if item["importance"] != "alternative"])
+    if counted < MINIMUM_RELIABLE_SKILL_COUNT:
+        missing = MINIMUM_RELIABLE_SKILL_COUNT - counted
+        fraction = (fraction * counted + NEUTRAL_FRACTION * missing) / MINIMUM_RELIABLE_SKILL_COUNT
+    return fraction
 
 
 def _experience_fraction(job: dict, profile: dict, assessments: list[dict]) -> tuple[float, str]:
@@ -194,8 +208,7 @@ def _explain(assessments, breakdown, hard_requirements, location_match) -> tuple
         if item["importance"] in ("mentioned", "alternative") or item["skill"] in failed_details:
             continue
         if item["match"] == "MISSING" and item.get("alternatives"):
-            options = " or ".join([item["skill"], *item["alternatives"]])
-            gaps.append(f"One of {options} is {item['importance']}; none shown on your resume")
+            gaps.append(f"One of {requirement_label(item)} is {item['importance']}; none shown on your resume")
         elif item["match"] == "MISSING":
             gaps.append(f"{item['skill']} is {item['importance']}; not shown on your resume")
         elif item["match"] == "UNVERIFIED":
@@ -237,14 +250,18 @@ def score_job(job: dict, profile: dict, preferences: dict | None = None, locatio
     uncapped_score = round(sum(part["score"] for part in breakdown.values()))
     major_gaps = [item for item in hard_requirements["hard_requirements_failed"] if item.get("severity") == MAJOR]
     score_cap = None
+    cap_reason = f"{len(major_gaps)} major gap(s)"
     if len(major_gaps) >= 2:
         score_cap = SCORE_CAP_SEVERAL_MAJOR_GAPS
     elif major_gaps:
         score_cap = SCORE_CAP_ONE_MAJOR_GAP
+    if location_match.status == "mismatch":
+        # A job the candidate cannot take from where they are is not a near miss, however good the rest is.
+        score_cap, cap_reason = min(score_cap or 100, SCORE_CAP_WRONG_LOCATION), "outside your locations"
     final_score = min(uncapped_score, score_cap) if score_cap is not None else uncapped_score
     breakdown["uncapped_total"] = uncapped_score
     if score_cap is not None and uncapped_score > score_cap:
-        breakdown["cap_applied"] = f"Limited to {score_cap}: {len(major_gaps)} major gap(s)"
+        breakdown["cap_applied"] = f"Limited to {score_cap}: {cap_reason}"
 
     why_match, gaps = _explain(assessments, breakdown, hard_requirements, location_match)
     return {
@@ -258,7 +275,17 @@ def score_job(job: dict, profile: dict, preferences: dict | None = None, locatio
                            if item["match"] == "MISSING" and item["importance"] != "alternative"],
         "missing_required_skills": [item["skill"] for item in assessments
                                     if item["match"] == "MISSING" and item["importance"] == "required"],
+        "missing_labels": [requirement_label(item) for item in assessments
+                           if item["match"] == "MISSING" and item["importance"] != "alternative"],
+        # The same requirements as the listing words them: "GCP, AWS or Azure" for an either-or list.
+        "missing_required_labels": [requirement_label(item) for item in assessments
+                                    if item["match"] == "MISSING" and item["importance"] == "required"],
         "unverified_skills": [item["skill"] for item in assessments if item["match"] == "UNVERIFIED"],
+        # Credited in part through a neighbouring skill (Docker for Kubernetes), yet still not on the resume.
+        "partial_skills": [{"skill": item["skill"], "importance": item["importance"], "match": item["match"],
+                            "matched_with": item["matched_with"]}
+                           for item in assessments if item["match"] in ("RELATED", "TRANSFERABLE")
+                           and item["importance"] != "alternative"],
         "hard_requirements": hard_requirements,
         "why_match": why_match,
         "gaps": gaps,

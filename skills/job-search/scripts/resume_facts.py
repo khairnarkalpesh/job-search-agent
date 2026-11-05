@@ -86,7 +86,7 @@ def unsupported_claims(original: ResumeFacts, rewritten: ResumeFacts, evidence_s
     claims += [_claim("dates", dates, "date range not in the original resume")
                for dates in rewritten.date_ranges if dates not in original.date_ranges]
     claims += [_claim("figure", figure, "number not in the original resume; figures are never estimated")
-               for figure in sorted(rewritten.figures - original.figures)]
+               for figure in sorted(_claimed_figures(rewritten) - original.figures)]
     claims += [_claim("certification", name, "certification not in the original resume")
                for name in sorted(rewritten.named_certifications - original.named_certifications)]
     for kind, lines in (("education", rewritten.education), ("certification", rewritten.certifications)):
@@ -105,9 +105,17 @@ def dropped_facts(original: ResumeFacts, rewritten: ResumeFacts) -> list[dict]:
                 for title in original.titles if not _known(title, rewritten.titles)]
     dropped += [_claim("dates", dates, "date range missing from the rewrite")
                 for dates in original.date_ranges if dates not in rewritten.date_ranges]
+    dropped += [_claim("figure", figure, "number missing from the rewrite; keep every real figure")
+                for figure in sorted(_claimed_figures(original) - rewritten.figures)]
     for kind, lines in (("education", original.education), ("certification", original.certifications)):
         for line in lines:
             lost_words = _words(line) - rewritten.words - _CONNECTING_WORDS
             if lost_words:
                 dropped.append(_claim(kind, line, f"missing from the rewrite: {', '.join(sorted(lost_words))}"))
     return dropped
+
+
+def _claimed_figures(facts: ResumeFacts) -> set[str]:
+    """Figures, less the years of date ranges: a moved date is reported once, as dates."""
+    years = {year for dates in facts.date_ranges for year in re.findall(r"\b(?:19|20)\d{2}\b", dates)}
+    return facts.figures - years

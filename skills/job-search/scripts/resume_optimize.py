@@ -39,7 +39,7 @@ from resume_parser import (BULLET, CORE_SECTIONS, SYNTHETIC_MARKER, ResumeParseE
                            group_projects, skill_list_items)
 from score_jobs import assess_job_skills, score_job
 from search_jobs import choose_data_dir
-from skill_taxonomy import find_skills, skill_spec, surface_form
+from skill_taxonomy import find_skills, skill_mentions, skill_spec, surface_form
 from target_roles import candidate_skill_set
 
 PLAN_FILE = "optimization_plan.json"
@@ -117,12 +117,13 @@ def build_plan(document: ResumeDocument, job: dict | None, profile: dict | None)
         "job_match": {key: scored[key] for key in ("match_score", "category", "missing_required_skills", "gaps")}
         if scored else None,
         "facts": ResumeFacts.of(document.text).to_dict(),
-        "emphasise": [term["skill"] for term in keyword_terms if term["on_resume"] in ("exact", "reworded")],
+        "emphasise": [term["skill"] for kind in ("required", "preferred") for term in _by_weight(terms.get(kind, []), job)
+                      if job and term["on_resume"] in ("exact", "reworded")],
         "use_job_wording": [{"job_term": term["job_term"], "resume_term": term["resume_term"]}
                             for term in keyword_terms if term["on_resume"] == "reworded"],
         "supported_not_shown": [term["skill"] for term in keyword_terms
                                 if term["on_resume"] not in ("exact", "reworded") and term["supported_elsewhere"]],
-        "do_not_add": [term["skill"] for term in keyword_terms
+        "do_not_add": [term.get("label") or term["skill"] for term in keyword_terms
                        if term["on_resume"] not in ("exact", "reworded") and not term["supported_elsewhere"]],
         "skills_order": sorted(view.resume_skills, key=lambda skill: (relevance.get(skill, 3), skill.lower())),
         "projects_order": [project[0] for project in order_projects(lines_meaning(view.sections, "projects"),
@@ -135,6 +136,18 @@ def build_plan(document: ResumeDocument, job: dict | None, profile: dict | None)
         "formatting_fixes": [risk["fix"] for risk in report["formatting_risks"]],
         "additional_information_required": _missing_information(report, view),
     }
+
+
+def _by_weight(terms: list[dict], job: dict | None) -> list[dict]:
+    """Terms of one level, the technologies the role is about before foundations (Git, OOP,
+    Testing), then the skills the listing names most often first; ties keep listing order."""
+    if not job:
+        return terms
+    counts: dict[str, int] = {}
+    for _, _, skill in skill_mentions(f"{job['title']}\n{job['description']}"):
+        counts[skill] = counts.get(skill, 0) + 1
+    return sorted(terms, key=lambda term: (bool(skill_spec(term["skill"]).get("foundation")),
+                                           -counts.get(term["skill"], 0)))
 
 
 def _weak_bullets(bullets: list[str]) -> list[dict]:
@@ -154,6 +167,8 @@ def _missing_information(report: dict, view: ResumeView) -> list[str]:
     """Questions for the user. Nothing in this list may be filled in without an answer."""
     required = (report["job_requirements"] or {}).get("required", [])
     needed = [f"Have you used {term['skill']}? If so, where? It is not added without that."
+              if term.get("label", term["skill"]) == term["skill"] else
+              f"Have you used any one of {term['label']}? If so, which, and where? It is not added without that."
               for term in required if term["on_resume"] not in ("exact", "reworded") and not term["supported_elsewhere"]]
     if not any(re.search(r"\d", line) for line in work_bullets(view)):
         needed.append("Any real figures for your outcomes (scale, time saved, users, money). None will be estimated.")
@@ -242,8 +257,8 @@ def build_draft(document: ResumeDocument, job: dict | None) -> str:
             body = _experience_lines(lines, relevance)
         elif key == "projects":
             body = [line for project in order_projects(lines, relevance) for line in _project_lines(project)]
-        else:
-            body = list(lines)
+        else:  # one bullet style everywhere: "•" and "*" become "-"
+            body = [f"- {BULLET.sub('', line)}" if BULLET.match(line) else line for line in lines]
         out += ["", f"## {title}", *body]
     return "\n".join(out).strip() + "\n"
 
